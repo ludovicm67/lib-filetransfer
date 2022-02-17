@@ -158,4 +158,12 @@ export class TransferFile {
     this.bufferLength = this.buffer.byteLength;
     this.setComplete(true);
   }
+
+  readFilePart(offset: number, limit: number): ArrayBuffer {
+    if (this.buffer === undefined) {
+      throw new Error(`buffer is not defined for file '#${this.id}'`);
+    }
+
+    return this.buffer.slice(offset, offset + limit);
+  }
 }

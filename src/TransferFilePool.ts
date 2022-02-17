@@ -133,4 +133,12 @@ export class TransferFilePool {
 
     return f.getMetadata();
   }
+
+  readFilePart(fileId: string, offset: number, limit: number): ArrayBuffer {
+    if (!this.fileExists(fileId)) {
+      throw new Error(`file '#${fileId}' does not exist`);
+    }
+
+    return this.transferFiles[fileId].readFilePart(offset, limit);
+  }
 }
