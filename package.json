@@ -1,5 +1,5 @@
 {
-  "name": "lib-filetransfer",
+  "name": "@ludovicm67/lib-filetransfer",
   "version": "0.0.1",
   "description": "",
   "type": "module",
@@ -13,7 +13,10 @@
     "type": "git",
     "url": "git+https://github.com/ludovicm67/lib-filetransfer.git"
   },
-  "author": "",
+  "author": {
+    "name": "Ludovic Muller",
+    "url": "https://ludovic-muller.fr/"
+  },
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/ludovicm67/lib-filetransfer/issues"
