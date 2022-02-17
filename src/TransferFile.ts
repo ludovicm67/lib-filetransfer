@@ -122,7 +122,7 @@ export class TransferFile {
     }
   }
 
-  download(maxBufferSize: number, askFilePartCallback: AskFilePartCallback): void {
+  async download(maxBufferSize: number, askFilePartCallback: AskFilePartCallback): Promise<void> {
     if (this.isComplete()) {
       // nothing to do, since the file is already complete
       return;
@@ -137,6 +137,7 @@ export class TransferFile {
     let offset = 0;
     while (offset <= this.bufferLength) {
       askFilePartCallback(this.id, offset, maxBufferSize);
+      await this.waitFilePartWithRetry(askFilePartCallback, offset, maxBufferSize);
       offset = offset + maxBufferSize;
     }
   }
@@ -169,5 +170,37 @@ export class TransferFile {
 
   receiveFilePart(offset: number, limit: number, data: ArrayBuffer): void {
     this.parts[`${limit}-${offset}`] = data;
+  }
+
+  async waitFilePart(offset: number, limit: number, timeout: number = 1): Promise<boolean> {
+    for (let i = timeout * 10; i >= 0; i--) {
+      if (this.parts && this.parts[`${limit}-${offset}`]) {
+        return true;
+      }
+      await new Promise(r => setTimeout(r, 100));
+    }
+
+    return false;
+  }
+
+  async waitFilePartWithRetry(askFilePartCallback: AskFilePartCallback, offset: number, limit: number, timeout: number = 1, retries: number = 10): Promise<void> {
+    let success = false;
+
+    askFilePartCallback(this.id, offset, limit);
+
+    for (let i = retries; i >= 0; i--) {
+      const receivedPart = await this.waitFilePart(offset, limit, timeout);
+      if (receivedPart) {
+        success = true;
+        break;
+      }
+
+      // in case of a failure, retry
+      askFilePartCallback(this.id, offset, limit);
+    }
+
+    if (!success) {
+      throw new Error(`missing part (limit=${limit}, offset=${offset}) for file '#${this.id}'`);
+    }
   }
 }

@@ -147,6 +147,6 @@ export class TransferFilePool {
       throw new Error(`file '#${fileId}' does not exist`);
     }
 
-    this.transferFiles[fileId];
+    this.transferFiles[fileId].receiveFilePart(offset, limit, data);
   }
 }

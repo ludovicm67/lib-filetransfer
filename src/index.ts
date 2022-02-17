@@ -42,7 +42,7 @@ const receiverPool = new TransferFilePool({
     // console.log(partData, partDataStr, partDataAB);
 
     // imagine the sender sends the data to the receiver…
-    await new Promise(r => setTimeout(r, Math.random() * 10000));
+    await new Promise(r => setTimeout(r, Math.random() * 8000));
 
     // receiver part:
     sendCb(fileId, offset, limit, partData);
