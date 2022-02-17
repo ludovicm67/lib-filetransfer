@@ -1,7 +1,12 @@
-const msg: string = "Hello world!";
+import { TransferFilePool } from "./TransferFilePool";
 
-const saySomething = (text: string) => {
-  console.log(text);
-};
-
-saySomething(msg);
+const pool = new TransferFilePool();
+pool.storeFileMetadata({
+  id: "test",
+  name: "test.txt",
+  type: "text/plain",
+  size: 0,
+});
+console.log(pool.fileExists("test"));
+pool.deleteFile("test");
+console.log(pool.fileExists("test"));

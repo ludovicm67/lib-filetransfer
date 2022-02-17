@@ -16,11 +16,22 @@ export class TransferFilePool {
     this.transferFiles = {};
   }
 
-  fileExists(fileId: string) {
+  /**
+   * Check existance of a file in the pool.
+   *
+   * @param fileId Id of the file.
+   * @returns true if the file exists.
+   */
+  fileExists(fileId: string): boolean {
     return Object.keys(this.transferFiles).includes(fileId);
   }
 
-  receiveFileMetadata(metadata: TransferFileMetadata) {
+  /**
+   * Store file metadata.
+   *
+   * @param metadata File metadata.
+   */
+  storeFileMetadata(metadata: TransferFileMetadata) {
     // check presence of 'id' field
     if (!metadata.id) {
       throw new Error("no 'id' field");
@@ -36,18 +47,31 @@ export class TransferFilePool {
       throw new Error("no 'type' field");
     }
 
-    // check presence of 'size' field
-    if (!metadata.size) {
-      throw new Error("no 'size' field");
-    }
-
+    // only store it if the file is not in the pool
     if (!this.fileExists(metadata.id)) {
       this.transferFiles[metadata.id] = new TransferFile(
         metadata.id,
         metadata.name,
-        metadata.type,
-        metadata.size,
+        metadata.type || "text/plain",
+        metadata.size || 0,
       );
     }
   };
+
+  /**
+   * Delete a file from the pool.
+   *
+   * @param fileId Id of the file.
+   */
+  deleteFile(fileId: string): void {
+    if (!this.fileExists(fileId)) {
+      return;
+    }
+
+    // remove keys with the specified fileId
+    this.transferFiles = Object.fromEntries(
+      Object.entries(this.transferFiles)
+        .filter(x => x[0] !== fileId)
+    );
+  }
 }
