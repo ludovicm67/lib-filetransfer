@@ -31,6 +31,8 @@ const receiverPool = new TransferFilePool({
   maxBufferSize: 5,
   askFilePartCallback: (fileId: string, offset: number, limit: number) => {
     console.log(`asking part #${fileId} (offset=${offset}, limit=${limit})`);
+    const partData = senderPool.readFilePart(fileId, offset, limit);
+    console.log(partData);
   }
 });
 

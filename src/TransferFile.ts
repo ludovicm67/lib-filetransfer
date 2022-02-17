@@ -136,7 +136,7 @@ export class TransferFile {
 
     let offset = 0;
     while (offset <= this.bufferLength) {
-      askFilePartCallback(this.id, offset, offset + maxBufferSize);
+      askFilePartCallback(this.id, offset, maxBufferSize);
       offset = offset + maxBufferSize;
     }
   }
