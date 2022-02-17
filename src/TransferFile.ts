@@ -129,6 +129,11 @@ export class TransferFile {
     }
   }
 
+  /**
+   * Get the Blob of the complete file.
+   *
+   * @returns The Blob of the file.
+   */
   getBlob(): Blob {
     if (!this.isComplete()) {
       throw new Error("file is incomplete");
@@ -157,6 +162,13 @@ export class TransferFile {
     return this.data;
   }
 
+  /**
+   * Download the file.
+   *
+   * @param maxBufferSize Maximum length for the data to ask at one time.
+   * @param askFilePartCallback Function that will be called to ask for some parts of the file.
+   * @returns
+   */
   async download(maxBufferSize: number, askFilePartCallback: AskFilePartCallback): Promise<void> {
     if (this.isComplete()) {
       // nothing to do, since the file is already complete
@@ -189,6 +201,11 @@ export class TransferFile {
     this.parts = {};
   }
 
+  /**
+   * Get the file metadata.
+   *
+   * @returns File metadata.
+   */
   getMetadata(): TransferFileMetadata {
     return {
       id: this.id,
@@ -199,9 +216,14 @@ export class TransferFile {
     };
   }
 
+  /**
+   * Get informations representing the file.
+   *
+   * @returns All informations representing the file.
+   */
   getFile(): TransferFileBlob {
     if (!this.isComplete()) {
-      throw new Error('file is incomplete');
+      throw new Error("file is incomplete");
     }
 
     return {
@@ -212,14 +234,26 @@ export class TransferFile {
     };
   }
 
+  /**
+   * Set a Blob as being the content of this file.
+   */
   async setBlob(blob: Blob): Promise<void> {
     const b = new Blob([blob], {type: blob.type});
     this.data = b;
     this.buffer = await b.arrayBuffer();
     this.bufferLength = this.buffer.byteLength;
     this.setComplete(true);
+    this.setDownloading(false);
+    this.setError(undefined, false);
   }
 
+  /**
+   * Read `limit` bytes at maximum from `offset` from the file.
+   *
+   * @param offset Offset from the start.
+   * @param limit Maximum number of bytes to return.
+   * @returns ArrayBuffer with the requested file part.
+   */
   readFilePart(offset: number, limit: number): ArrayBuffer {
     if (this.buffer === undefined) {
       throw new Error(`buffer is not defined for file '#${this.id}'`);
@@ -228,11 +262,30 @@ export class TransferFile {
     return this.buffer.slice(offset, offset + limit);
   }
 
+  /**
+   * Receive a part of the file.
+   *
+   * @param offset Offset from the start.
+   * @param limit The requested limit.
+   * @param data ArrayBuffer containing the requested data.
+   */
   receiveFilePart(offset: number, limit: number, data: ArrayBuffer): void {
     this.parts[`${limit}-${offset}`] = data;
   }
 
+  /**
+   * Check for presence of a specific part of the file.
+   *
+   * @param offset Offset from the start.
+   * @param limit The requested limit.
+   * @param timeout Timeout in seconds (default: `1`)
+   * @returns true of the part was received.
+   */
   async waitFilePart(offset: number, limit: number, timeout: number = 1): Promise<boolean> {
+    if (this.isComplete()) {
+      return true;
+    }
+
     for (let i = timeout * 10; i >= 0; i--) {
       if (this.parts && this.parts[`${limit}-${offset}`]) {
         return true;
@@ -243,6 +296,15 @@ export class TransferFile {
     return false;
   }
 
+  /**
+   * Wait for a specific part of a file, with some retries.
+   *
+   * @param askFilePartCallback Function to ask a file part to the sender.
+   * @param offset Offset from the start.
+   * @param limit Maximum number of bytes that we can read.
+   * @param timeout Timeout for a single check in seconds (default: `1`)
+   * @param retries Number of retries before considering it as a failure.
+   */
   async waitFilePartWithRetry(askFilePartCallback: AskFilePartCallback, offset: number, limit: number, timeout: number = 1, retries: number = 10): Promise<void> {
     let success = false;
 
