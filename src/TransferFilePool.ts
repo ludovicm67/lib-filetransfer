@@ -1,4 +1,6 @@
-import { TransferFile } from "./TransferFile";
+import Blob from "cross-blob";
+import { uuid } from 'uuidv4';
+import { TransferFile } from "./TransferFile.js";
 
 type TransferFilePoolFiles = Record<string, TransferFile>;
 
@@ -87,5 +89,20 @@ export class TransferFilePool {
 
     const file = this.transferFiles[fileId];
     file.download();
+  }
+
+  addFile(blob: Blob, name: string): TransferFileMetadata {
+    const fId = uuid();
+
+    if (this.fileExists(fId)) {
+      throw new Error('impossible to add this file to the pool, please retry');
+    }
+
+    const f = new TransferFile(fId, name, blob.type, blob.size);
+    f.setBlob(blob);
+    f.isComplete();
+    this.transferFiles[fId] = f;
+
+    return f.getMetadata();
   }
 }

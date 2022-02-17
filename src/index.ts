@@ -1,4 +1,5 @@
-import { TransferFilePool } from "./TransferFilePool";
+import { TransferFilePool } from "./TransferFilePool.js";
+import Blob from "cross-blob";
 
 const pool = new TransferFilePool();
 pool.storeFileMetadata({
@@ -10,3 +11,9 @@ pool.storeFileMetadata({
 console.log(pool.fileExists("test"));
 pool.deleteFile("test");
 console.log(pool.fileExists("test"));
+
+const file = new Blob(["Hello world!"], {
+  type: "text/plain",
+});
+
+console.log(pool.addFile(file, "test.txt"));

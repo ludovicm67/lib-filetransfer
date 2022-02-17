@@ -1,3 +1,6 @@
+import Blob from "cross-blob";
+import { TransferFileMetadata } from "./TransferFilePool.js";
+
 type TransferFileParts = Record<string, string>;
 
 export type TransferFileInfos = {
@@ -22,7 +25,7 @@ export class TransferFile {
 
   // store data
   parts: TransferFileParts = {}; // while fetching content
-  data: string | undefined = undefined; // full data
+  data: Blob | undefined = undefined; // full data
 
   // state
   complete: boolean = false; // data is ready and complete
@@ -124,5 +127,19 @@ export class TransferFile {
 
     this.setDownloading(true);
     // TODO: ask for parts
+  }
+
+  getMetadata(): TransferFileMetadata {
+    return {
+      id: this.id,
+      name: this.name,
+      size: this.size,
+      type: this.type,
+    };
+  }
+
+  setBlob(blob: Blob): void {
+    const b = new Blob([blob], {type: blob.type});
+    this.data = b;
   }
 }
