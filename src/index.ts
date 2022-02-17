@@ -27,16 +27,30 @@ const fileMetadata = await senderPool.addFile(file, "test.txt");
 /**
  * RECEIVER
  */
+let sendCb = (_fileId: string, _offset: number, _limit: number, _data: ArrayBuffer) => {};
 const receiverPool = new TransferFilePool({
   maxBufferSize: 5,
   askFilePartCallback: (fileId: string, offset: number, limit: number) => {
-    console.log(`asking part #${fileId} (offset=${offset}, limit=${limit})`);
+    console.log(`> ASKING \t part #${fileId} (offset=${offset}, limit=${limit})`);
+
+    // imagine the receiver sending a message to the sender to ask this part of this file…
+
+    // sender part:
     const partData = senderPool.readFilePart(fileId, offset, limit);
-    const partDataStr = arrayBufferToString(partData);
-    const partDataAB = stringToArrayBuffer(partDataStr);
-    console.log(partData, partDataStr, partDataAB);
+    // const partDataStr = arrayBufferToString(partData);
+    // const partDataAB = stringToArrayBuffer(partDataStr);
+    // console.log(partData, partDataStr, partDataAB);
+
+    // imagine the sender sends the data to the receiver…
+
+    // receiver part:
+    sendCb(fileId, offset, limit, partData);
   }
 });
+sendCb = (fileId: string, offset: number, limit: number, data: ArrayBuffer) => {
+  console.log(`< RECEIVING \t part #${fileId} (offset=${offset}, limit=${limit})`);
+  receiverPool.receiveFilePart(fileId, offset, limit, data);
+};
 
 // imagine the sender sent the fileMetadata on a dedicated channel…
 const receivedFileMetadata: TransferFileMetadata = {...fileMetadata};

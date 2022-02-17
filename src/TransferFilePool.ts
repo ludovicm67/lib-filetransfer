@@ -141,4 +141,12 @@ export class TransferFilePool {
 
     return this.transferFiles[fileId].readFilePart(offset, limit);
   }
+
+  receiveFilePart(fileId: string, offset: number, limit: number, data: ArrayBuffer): void {
+    if (!this.fileExists(fileId)) {
+      throw new Error(`file '#${fileId}' does not exist`);
+    }
+
+    this.transferFiles[fileId];
+  }
 }

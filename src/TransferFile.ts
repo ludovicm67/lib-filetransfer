@@ -166,4 +166,8 @@ export class TransferFile {
 
     return this.buffer.slice(offset, offset + limit);
   }
+
+  receiveFilePart(offset: number, limit: number, data: ArrayBuffer): void {
+    this.parts[`${limit}-${offset}`] = data;
+  }
 }
