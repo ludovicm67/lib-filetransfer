@@ -32,7 +32,9 @@ const receiverPool = new TransferFilePool({
   askFilePartCallback: (fileId: string, offset: number, limit: number) => {
     console.log(`asking part #${fileId} (offset=${offset}, limit=${limit})`);
     const partData = senderPool.readFilePart(fileId, offset, limit);
-    console.log(partData);
+    const partDataStr = arrayBufferToString(partData);
+    const partDataAB = stringToArrayBuffer(partDataStr);
+    console.log(partData, partDataStr, partDataAB);
   }
 });
 
