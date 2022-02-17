@@ -9,13 +9,36 @@ export type TransferFileMetadata = {
   name: string;
   type: string;
   size: number;
+  bufferLength: number;
+};
+
+export type AskFilePartCallback = (fileId: string, offset: number, limit: number) => void;
+
+export type TransferFilePoolOptions = {
+  askFilePartCallback?: AskFilePartCallback;
+  maxBufferSize?: number;
 };
 
 export class TransferFilePool {
   transferFiles: TransferFilePoolFiles;
 
-  constructor() {
+  // configuration
+  maxBufferSize: number;
+
+  // callbacks
+  askFilePartCallback: AskFilePartCallback;
+
+  constructor(options: TransferFilePoolOptions) {
     this.transferFiles = {};
+
+    // manage askFilePartCallback
+    if (options.askFilePartCallback) {
+      this.askFilePartCallback = options.askFilePartCallback;
+    } else {
+      this.askFilePartCallback = (_fileId: string, _offset: number, _limit: number) => {};
+    }
+
+    this.maxBufferSize = options.maxBufferSize !== undefined ? options.maxBufferSize : 1000;
   }
 
   /**
@@ -56,6 +79,7 @@ export class TransferFilePool {
         metadata.name,
         metadata.type || "text/plain",
         metadata.size || 0,
+        metadata.bufferLength || 0,
       );
     }
   };
@@ -88,19 +112,18 @@ export class TransferFilePool {
     }
 
     const file = this.transferFiles[fileId];
-    file.download();
+    file.download(this.maxBufferSize, this.askFilePartCallback);
   }
 
-  addFile(blob: Blob, name: string): TransferFileMetadata {
+  async addFile(blob: Blob, name: string): Promise<TransferFileMetadata> {
     const fId = uuid();
 
     if (this.fileExists(fId)) {
       throw new Error('impossible to add this file to the pool, please retry');
     }
 
-    const f = new TransferFile(fId, name, blob.type, blob.size);
-    f.setBlob(blob);
-    f.isComplete();
+    const f = new TransferFile(fId, name, blob.type, blob.size, 0);
+    await f.setBlob(blob);
     this.transferFiles[fId] = f;
 
     return f.getMetadata();

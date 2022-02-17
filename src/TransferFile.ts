@@ -1,12 +1,13 @@
 import Blob from "cross-blob";
-import { TransferFileMetadata } from "./TransferFilePool.js";
+import { AskFilePartCallback, TransferFileMetadata } from "./TransferFilePool.js";
 
-type TransferFileParts = Record<string, string>;
+type TransferFileParts = Record<string, ArrayBuffer>;
 
 export type TransferFileInfos = {
   id: string,
   name: string,
   size: number,
+  bufferLength: number;
 
   complete: boolean,
   downloading: boolean,
@@ -27,6 +28,7 @@ export class TransferFile {
   parts: TransferFileParts = {}; // while fetching content
   data: Blob | undefined = undefined; // full data
   buffer: ArrayBuffer | undefined = undefined;
+  bufferLength: number;
 
   // state
   complete: boolean = false; // data is ready and complete
@@ -43,12 +45,14 @@ export class TransferFile {
    * @param name Name of the file.
    * @param type Type of the file.
    * @param size Size of the file.
+   * @param bufferLength Length of the internal buffer.
    */
-  constructor(id: string, name: string, type: string, size: number) {
+  constructor(id: string, name: string, type: string, size: number, bufferLength: number) {
     this.id = id;
     this.name = name;
     this.type = type;
     this.size = size;
+    this.bufferLength = bufferLength;
   }
 
   /**
@@ -108,6 +112,7 @@ export class TransferFile {
       id: this.id,
       name: this.name,
       size: this.size,
+      bufferLength: this.bufferLength,
 
       complete: this.complete,
       downloading: this.downloading,
@@ -117,7 +122,7 @@ export class TransferFile {
     }
   }
 
-  download(): void {
+  download(maxBufferSize: number, askFilePartCallback: AskFilePartCallback): void {
     if (this.isComplete()) {
       // nothing to do, since the file is already complete
       return;
@@ -128,7 +133,12 @@ export class TransferFile {
     }
 
     this.setDownloading(true);
-    // TODO: ask for parts
+
+    let offset = 0;
+    while (offset <= this.bufferLength) {
+      askFilePartCallback(this.id, offset, offset + maxBufferSize);
+      offset = offset + maxBufferSize;
+    }
   }
 
   getMetadata(): TransferFileMetadata {
@@ -137,6 +147,7 @@ export class TransferFile {
       name: this.name,
       size: this.size,
       type: this.type,
+      bufferLength: this.bufferLength,
     };
   }
 
@@ -144,5 +155,7 @@ export class TransferFile {
     const b = new Blob([blob], {type: blob.type});
     this.data = b;
     this.buffer = await b.arrayBuffer();
+    this.bufferLength = this.buffer.byteLength;
+    this.setComplete(true);
   }
 }

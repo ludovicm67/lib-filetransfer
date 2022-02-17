@@ -6,12 +6,13 @@ import { arrayBufferToString, stringToArrayBuffer } from "./utils.js";
 /**
  * SENDER
  */
-const senderPool = new TransferFilePool();
+const senderPool = new TransferFilePool({});
 senderPool.storeFileMetadata({
   id: "test",
   name: "test.txt",
   type: "text/plain",
   size: 0,
+  bufferLength: 0,
 });
 console.log(senderPool.fileExists("test"));
 senderPool.deleteFile("test");
@@ -20,13 +21,18 @@ console.log(senderPool.fileExists("test"));
 const file = new Blob(["Hello world!"], {
   type: "text/plain",
 });
-const fileMetadata = senderPool.addFile(file, "test.txt");
+const fileMetadata = await senderPool.addFile(file, "test.txt");
 
 
 /**
  * RECEIVER
  */
-const receiverPool = new TransferFilePool();
+const receiverPool = new TransferFilePool({
+  maxBufferSize: 5,
+  askFilePartCallback: (fileId: string, offset: number, limit: number) => {
+    console.log(`asking part #${fileId} (offset=${offset}, limit=${limit})`);
+  }
+});
 
 // imagine the sender sent the fileMetadata on a dedicated channel…
 const receivedFileMetadata: TransferFileMetadata = {...fileMetadata};
