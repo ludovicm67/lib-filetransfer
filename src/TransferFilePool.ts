@@ -105,14 +105,19 @@ export class TransferFilePool {
    * Trigger the download of a file.
    *
    * @param fileId Id of the file.
+   * @param askFilePartCallback Callback function to ask a specific part of a file.
    */
-  downloadFile(fileId: string): void {
+  downloadFile(fileId: string, askFilePartCallback?: AskFilePartCallback): void {
     if (!this.fileExists(fileId)) {
       throw new Error(`file '#${fileId}' does not exist`);
     }
 
     const file = this.transferFiles[fileId];
-    file.download(this.maxBufferSize, this.askFilePartCallback);
+    if (askFilePartCallback !== undefined) {
+      file.download(this.maxBufferSize, askFilePartCallback);
+    } else {
+      file.download(this.maxBufferSize, this.askFilePartCallback);
+    }
   }
 
   async addFile(blob: Blob, name: string): Promise<TransferFileMetadata> {
