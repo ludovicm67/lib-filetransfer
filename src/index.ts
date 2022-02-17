@@ -30,7 +30,7 @@ const fileMetadata = await senderPool.addFile(file, "test.txt");
 let sendCb = (_fileId: string, _offset: number, _limit: number, _data: ArrayBuffer) => {};
 const receiverPool = new TransferFilePool({
   maxBufferSize: 5,
-  askFilePartCallback: (fileId: string, offset: number, limit: number) => {
+  askFilePartCallback: async (fileId: string, offset: number, limit: number) => {
     console.log(`> ASKING \t part #${fileId} (offset=${offset}, limit=${limit})`);
 
     // imagine the receiver sending a message to the sender to ask this part of this file…
@@ -42,6 +42,7 @@ const receiverPool = new TransferFilePool({
     // console.log(partData, partDataStr, partDataAB);
 
     // imagine the sender sends the data to the receiver…
+    await new Promise(r => setTimeout(r, Math.random() * 10000));
 
     // receiver part:
     sendCb(fileId, offset, limit, partData);
