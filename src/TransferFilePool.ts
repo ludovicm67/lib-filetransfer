@@ -120,6 +120,13 @@ export class TransferFilePool {
     }
   }
 
+  /**
+   * Add a file directly to the pool.
+   *
+   * @param blob Blob to store to the pool.
+   * @param name Name of the file.
+   * @returns The metadata of the file.
+   */
   async addFile(blob: Blob, name: string): Promise<TransferFileMetadata> {
     const fId = uuid();
 
@@ -134,6 +141,14 @@ export class TransferFilePool {
     return f.getMetadata();
   }
 
+  /**
+   * Read a specific part of a file.
+   *
+   * @param fileId Id of the file.
+   * @param offset From where to read.
+   * @param limit Maximum lenght of data we want to read.
+   * @returns ArrayBuffer containing the requested part of the file.
+   */
   readFilePart(fileId: string, offset: number, limit: number): ArrayBuffer {
     if (!this.fileExists(fileId)) {
       throw new Error(`file '#${fileId}' does not exist`);
@@ -142,6 +157,14 @@ export class TransferFilePool {
     return this.transferFiles[fileId].readFilePart(offset, limit);
   }
 
+  /**
+   * Receive a specific part of a file.
+   *
+   * @param fileId Id of the file.
+   * @param offset From where it was read.
+   * @param limit Maximum length of read data.
+   * @param data ArrayBuffer containing the data of defined part of the file.
+   */
   receiveFilePart(fileId: string, offset: number, limit: number, data: ArrayBuffer): void {
     if (!this.fileExists(fileId)) {
       throw new Error(`file '#${fileId}' does not exist`);
@@ -150,6 +173,12 @@ export class TransferFilePool {
     this.transferFiles[fileId].receiveFilePart(offset, limit, data);
   }
 
+  /**
+   * Get informations representing a specific file.
+   *
+   * @param fileId Id of the file.
+   * @returns Informations representing the requested file.
+   */
   getFile(fileId: string): TransferFileBlob {
     if (!this.fileExists(fileId)) {
       throw new Error(`file '#${fileId}' does not exist`);
@@ -158,6 +187,12 @@ export class TransferFilePool {
     return this.transferFiles[fileId].getFile();
   }
 
+  /**
+   * Get the Blob of a specific complete file.
+   *
+   * @param fileId Id of the file.
+   * @returns The Blob of the complete file.
+   */
   getBlob(fileId: string): Blob {
     if (!this.fileExists(fileId)) {
       throw new Error(`file '#${fileId}' does not exist`);
