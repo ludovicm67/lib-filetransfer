@@ -16,6 +16,13 @@ export type TransferFileInfos = {
   message: string | undefined,
 };
 
+export type TransferFileBlob = {
+  name: string;
+  type: string;
+  size: number;
+  data: Blob;
+};
+
 export class TransferFile {
   id: string; // file ID
 
@@ -133,13 +140,24 @@ export class TransferFile {
     }
 
     this.setDownloading(true);
+    this.setError(undefined, false);
 
-    let offset = 0;
-    while (offset <= this.bufferLength) {
-      askFilePartCallback(this.id, offset, maxBufferSize);
-      await this.waitFilePartWithRetry(askFilePartCallback, offset, maxBufferSize);
-      offset = offset + maxBufferSize;
+    try {
+      let offset = 0;
+      while (offset <= this.bufferLength) {
+        askFilePartCallback(this.id, offset, maxBufferSize);
+        await this.waitFilePartWithRetry(askFilePartCallback, offset, maxBufferSize);
+        offset = offset + maxBufferSize;
+      }
+
+      this.setComplete(true);
+    } catch (e: any) {
+      this.setComplete(false);
+      this.setError(e?.message || "something went wrong");
     }
+
+    this.setDownloading(false);
+    this.parts = {};
   }
 
   getMetadata(): TransferFileMetadata {
@@ -149,6 +167,23 @@ export class TransferFile {
       size: this.size,
       type: this.type,
       bufferLength: this.bufferLength,
+    };
+  }
+
+  getFile(): TransferFileBlob {
+    if (!this.complete) {
+      throw new Error('file is incomplete');
+    }
+
+    if (this.data === undefined) {
+      throw new Error('this file does not have any data');
+    }
+
+    return {
+      name: this.name,
+      type: this.type,
+      size: this.size,
+      data: this.data,
     };
   }
 
