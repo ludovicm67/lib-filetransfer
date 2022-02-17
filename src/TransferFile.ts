@@ -129,6 +129,34 @@ export class TransferFile {
     }
   }
 
+  getBlob(): Blob {
+    if (!this.isComplete()) {
+      throw new Error("file is incomplete");
+    }
+
+    // generate the blob if it does not exist
+    if (this.data === undefined) {
+      this.data = new Blob(Object.keys(this.parts).sort((x, y) => {
+        const offsetX = parseInt(x.replace(/.*-/, ''), 10);
+        const offsetY = parseInt(y.replace(/.*-/, ''), 10);
+
+        if (offsetX < offsetY) {
+          return -1;
+        }
+
+        if (offsetX > offsetY) {
+          return 1;
+        }
+
+        return 0;
+      }).map((fPart) => this.parts[fPart]), {
+        type: this.type,
+      });
+    }
+
+    return this.data;
+  }
+
   async download(maxBufferSize: number, askFilePartCallback: AskFilePartCallback): Promise<void> {
     if (this.isComplete()) {
       // nothing to do, since the file is already complete
@@ -151,6 +179,7 @@ export class TransferFile {
       }
 
       this.setComplete(true);
+      this.getBlob();
     } catch (e: any) {
       this.setComplete(false);
       this.setError(e?.message || "something went wrong");
@@ -171,19 +200,15 @@ export class TransferFile {
   }
 
   getFile(): TransferFileBlob {
-    if (!this.complete) {
+    if (!this.isComplete()) {
       throw new Error('file is incomplete');
-    }
-
-    if (this.data === undefined) {
-      throw new Error('this file does not have any data');
     }
 
     return {
       name: this.name,
       type: this.type,
       size: this.size,
-      data: this.data,
+      data: this.getBlob(),
     };
   }
 

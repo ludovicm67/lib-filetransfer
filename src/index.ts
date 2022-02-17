@@ -58,15 +58,17 @@ const receivedFileMetadata: TransferFileMetadata = {...fileMetadata};
 
 // this will crash, since the pool does not know about the file metadata
 try {
-  receiverPool.downloadFile(receivedFileMetadata.id);
+  await receiverPool.downloadFile(receivedFileMetadata.id);
 } catch (e) {}
 
 // so we store the file metadata in the pool
 receiverPool.storeFileMetadata(receivedFileMetadata);
 
 // imagine the user click on the download button
-receiverPool.downloadFile(receivedFileMetadata.id);
-
+await receiverPool.downloadFile(receivedFileMetadata.id);
+const finalFile = receiverPool.getFile(receivedFileMetadata.id);
+console.log('file downloaded:', finalFile);
+console.log('final content:', await finalFile.data.text());
 
 
 

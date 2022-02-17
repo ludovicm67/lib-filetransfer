@@ -1,6 +1,6 @@
 import Blob from "cross-blob";
 import { uuid } from 'uuidv4';
-import { TransferFile } from "./TransferFile.js";
+import { TransferFile, TransferFileBlob } from "./TransferFile.js";
 
 type TransferFilePoolFiles = Record<string, TransferFile>;
 
@@ -107,16 +107,16 @@ export class TransferFilePool {
    * @param fileId Id of the file.
    * @param askFilePartCallback Callback function to ask a specific part of a file.
    */
-  downloadFile(fileId: string, askFilePartCallback?: AskFilePartCallback): void {
+  async downloadFile(fileId: string, askFilePartCallback?: AskFilePartCallback): Promise<void> {
     if (!this.fileExists(fileId)) {
       throw new Error(`file '#${fileId}' does not exist`);
     }
 
     const file = this.transferFiles[fileId];
     if (askFilePartCallback !== undefined) {
-      file.download(this.maxBufferSize, askFilePartCallback);
+      await file.download(this.maxBufferSize, askFilePartCallback);
     } else {
-      file.download(this.maxBufferSize, this.askFilePartCallback);
+      await file.download(this.maxBufferSize, this.askFilePartCallback);
     }
   }
 
@@ -148,5 +148,21 @@ export class TransferFilePool {
     }
 
     this.transferFiles[fileId].receiveFilePart(offset, limit, data);
+  }
+
+  getFile(fileId: string): TransferFileBlob {
+    if (!this.fileExists(fileId)) {
+      throw new Error(`file '#${fileId}' does not exist`);
+    }
+
+    return this.transferFiles[fileId].getFile();
+  }
+
+  getBlob(fileId: string): Blob {
+    if (!this.fileExists(fileId)) {
+      throw new Error(`file '#${fileId}' does not exist`);
+    }
+
+    return this.transferFiles[fileId].getBlob();
   }
 }
