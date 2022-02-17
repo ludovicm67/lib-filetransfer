@@ -1,19 +1,42 @@
-import { TransferFilePool } from "./TransferFilePool.js";
+import { TransferFileMetadata, TransferFilePool } from "./TransferFilePool.js";
 import Blob from "cross-blob";
 
-const pool = new TransferFilePool();
-pool.storeFileMetadata({
+
+/**
+ * SENDER
+ */
+const senderPool = new TransferFilePool();
+senderPool.storeFileMetadata({
   id: "test",
   name: "test.txt",
   type: "text/plain",
   size: 0,
 });
-console.log(pool.fileExists("test"));
-pool.deleteFile("test");
-console.log(pool.fileExists("test"));
+console.log(senderPool.fileExists("test"));
+senderPool.deleteFile("test");
+console.log(senderPool.fileExists("test"));
 
 const file = new Blob(["Hello world!"], {
   type: "text/plain",
 });
+const fileMetadata = senderPool.addFile(file, "test.txt");
 
-console.log(pool.addFile(file, "test.txt"));
+
+/**
+ * RECEIVER
+ */
+const receiverPool = new TransferFilePool();
+
+// imagine the sender sent the fileMetadata on a dedicated channel…
+const receivedFileMetadata: TransferFileMetadata = {...fileMetadata};
+
+// this will crash, since the pool does not know about the file metadata
+try {
+  receiverPool.downloadFile(receivedFileMetadata.id);
+} catch (e) {}
+
+// so we store the file metadata in the pool
+receiverPool.storeFileMetadata(receivedFileMetadata);
+
+// imagine the user click on the download button
+receiverPool.downloadFile(receivedFileMetadata.id);
