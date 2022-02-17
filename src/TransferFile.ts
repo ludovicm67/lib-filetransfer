@@ -26,6 +26,7 @@ export class TransferFile {
   // store data
   parts: TransferFileParts = {}; // while fetching content
   data: Blob | undefined = undefined; // full data
+  buffer: ArrayBuffer | undefined = undefined;
 
   // state
   complete: boolean = false; // data is ready and complete
@@ -123,6 +124,7 @@ export class TransferFile {
     }
     if (this.isDownloading()) {
       // nothing to do, since the download action was already triggered
+      return;
     }
 
     this.setDownloading(true);
@@ -138,8 +140,9 @@ export class TransferFile {
     };
   }
 
-  setBlob(blob: Blob): void {
+  async setBlob(blob: Blob): Promise<void> {
     const b = new Blob([blob], {type: blob.type});
     this.data = b;
+    this.buffer = await b.arrayBuffer();
   }
 }
