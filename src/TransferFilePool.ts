@@ -74,4 +74,18 @@ export class TransferFilePool {
         .filter(x => x[0] !== fileId)
     );
   }
+
+  /**
+   * Trigger the download of a file.
+   *
+   * @param fileId Id of the file.
+   */
+  downloadFile(fileId: string): void {
+    if (!this.fileExists(fileId)) {
+      throw new Error(`file '#${fileId}' does not exist`);
+    }
+
+    const file = this.transferFiles[fileId];
+    file.download();
+  }
 }

@@ -57,12 +57,30 @@ export class TransferFile {
   }
 
   /**
+   * Check if the file is downloading.
+   *
+   * @returns true if the file is downloading.
+   */
+  isDownloading(): boolean {
+    return this.downloading;
+  }
+
+  /**
    * Set the file as being complete.
    *
    * @param isComplete True if the download is complete.
    */
   setComplete(isComplete: boolean = true): void {
     this.complete = isComplete;
+  }
+
+  /**
+   * Check if the file is complete.
+   *
+   * @returns true if the file is complete.
+   */
+  isComplete(): boolean {
+    return this.complete;
   }
 
   /**
@@ -93,5 +111,18 @@ export class TransferFile {
 
       message: this.message,
     }
+  }
+
+  download(): void {
+    if (this.isComplete()) {
+      // nothing to do, since the file is already complete
+      return;
+    }
+    if (this.isDownloading()) {
+      // nothing to do, since the download action was already triggered
+    }
+
+    this.setDownloading(true);
+    // TODO: ask for parts
   }
 }
