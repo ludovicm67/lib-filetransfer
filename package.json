@@ -4,6 +4,7 @@
   "description": "Library to help building a file transfer application",
   "type": "module",
   "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "scripts": {
     "build": "tsc",
     "start": "npm run build && node --no-warnings lib/index.js",
