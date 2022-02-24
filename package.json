@@ -30,5 +30,8 @@
   "dependencies": {
     "cross-blob": "^3.0.1",
     "uuidv4": "^6.2.12"
-  }
+  },
+  "files": [
+    "lib"
+  ]
 }
