@@ -1,5 +1,5 @@
 import Blob from "cross-blob";
-import { uuid } from 'uuidv4';
+import { v4 as uuidv4 } from "uuid";
 import { TransferFile, TransferFileBlob } from "./TransferFile.js";
 
 type TransferFilePoolFiles = Record<string, TransferFile>;
@@ -128,7 +128,7 @@ export class TransferFilePool {
    * @returns The metadata of the file.
    */
   async addFile(blob: Blob, name: string): Promise<TransferFileMetadata> {
-    const fId = uuid();
+    const fId = uuidv4();
 
     if (this.fileExists(fId)) {
       throw new Error('impossible to add this file to the pool, please retry');
