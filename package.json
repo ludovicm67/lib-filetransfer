@@ -9,6 +9,7 @@
     "build": "tsc",
     "prepack": "npm run build",
     "start": "npm run build && node --no-warnings lib/index.js",
+    "docs": "typedoc src/index.ts --out docs",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -27,6 +28,7 @@
   "devDependencies": {
     "@types/node": "^17.0.18",
     "@types/uuid": "^8.3.4",
+    "typedoc": "^0.22.12",
     "typescript": "^4.5.5"
   },
   "dependencies": {
