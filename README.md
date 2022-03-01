@@ -107,3 +107,64 @@ import { TransferFileMetadata } from "@ludovicm67/lib-filetransfer";
 
 const fileId = filePool.storeFileMetadata(fileMetadata);
 ```
+
+The receiver has a new variable `fileId` containing the ID of the file.
+
+We will make the assumption that `sendToOtherUser` is a function that is taking data to send to the other user.
+You will need to take care of it by yourself.
+
+So here is how to trigger the download of the file:
+
+```ts
+// this function will be called to ask each file part to the other user
+const callbackToAskFilePart = (
+  fileId: string,
+  offset: number,
+  limit: number
+) => {
+  sendToOtherUser({
+    type: "file-ask-part",
+    fileId,
+    offset,
+    limit,
+  });
+};
+
+// we wait that the full file is downloaded
+await filePool.downloadFile(fileId, callback);
+const file = filePool.getFile(fileId);
+const url = URL.createObjectURL(file.data);
+
+// open the downloaded file in a new browser tab
+window.open(url, "_blank").focus();
+```
+
+On the sender side, we imagine you get the value of the `sendToOtherUser` function in the `request` variable:
+
+```ts
+const { fileId, offset, limit } = request;
+
+// this will contain the part of the requested file
+const data = filePool.readFilePart(fileId, offset, limit);
+
+// send this data to the other user
+sendToOtherUser({
+  type: "file-part",
+  fileId,
+  offset,
+  limit,
+  data,
+});
+```
+
+On the receiver side, we imagine you get the value of the `sendToOtherUser` function in the `response` variable:
+
+```ts
+const { fileId, offset, limit, data } = response;
+
+filePool.receiveFilePart(fileId, offset, limit, data);
+```
+
+The sender is able to send all the parts of the file, and the receiver to ask and store them.
+
+You now have all the logic to build your application!
