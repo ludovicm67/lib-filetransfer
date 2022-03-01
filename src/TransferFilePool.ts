@@ -28,17 +28,17 @@ export class TransferFilePool {
   // callbacks
   askFilePartCallback: AskFilePartCallback;
 
-  constructor(options: TransferFilePoolOptions) {
+  constructor(options?: TransferFilePoolOptions) {
     this.transferFiles = {};
 
     // manage askFilePartCallback
-    if (options.askFilePartCallback) {
+    if (options?.askFilePartCallback) {
       this.askFilePartCallback = options.askFilePartCallback;
     } else {
       this.askFilePartCallback = (_fileId: string, _offset: number, _limit: number) => {};
     }
 
-    this.maxBufferSize = options.maxBufferSize !== undefined ? options.maxBufferSize : 1000;
+    this.maxBufferSize = options?.maxBufferSize !== undefined ? options.maxBufferSize : 1000;
   }
 
   /**
