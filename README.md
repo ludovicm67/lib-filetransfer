@@ -66,3 +66,44 @@ sequenceDiagram
 ```
 
 To summarize, you will need to take care of having a communication channel between users, and the library is doing the rest.
+
+## Integration
+
+Add this library to your NodeJS project's dependencies:
+
+```sh
+npm i @ludovicm67/lib-filetransfer
+```
+
+And in your project, instantiate a pool like this:
+
+```ts
+import { TransferFilePool } from "@ludovicm67/lib-filetransfer";
+
+const filePool = new TransferFilePool({ maxBufferSize: 5000 });
+```
+
+To send a file to another user, you will need to add it to the pool like this:
+
+```ts
+// you have a variable called `file` of type `File`:
+const fileName = file.name;
+const fileMetadata = await filePool.addFile(file, fileName);
+
+// you have a variable called `file` of type `Blob`:
+const fileName = "file-name.txt"; // specify a file name
+const fileMetadata = await filePool.addFile(file, fileName);
+```
+
+You should find a way to send the content of the `fileMetadata` variable to the other user.
+
+Here is how you should add the metadata to the pool of the receiver:
+
+```ts
+// here is how to import the type representing the file metadata, in case you need it:
+import { TransferFileMetadata } from "@ludovicm67/lib-filetransfer";
+
+// you have a variable called `fileMetadata` of type `TransferFileMetadata` containing the metadata received from the sender
+
+filePool.storeFileMetadata(fileMetadata);
+```
