@@ -1,6 +1,71 @@
 <!DOCTYPE html><html class="default"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>@ludovicm67/lib-filetransfer</title><meta name="description" content="Documentation for @ludovicm67/lib-filetransfer"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="assets/style.css"/><link rel="stylesheet" href="assets/highlight.css"/><script async src="assets/search.js" id="search-script"></script></head><body><script>document.body.classList.add(localStorage.getItem("tsd-theme") || "os")</script><header><div class="tsd-page-toolbar"><div class="container"><div class="table-wrap"><div class="table-cell" id="tsd-search" data-base="."><div class="field"><label for="tsd-search-field" class="tsd-widget search no-caption">Search</label><input type="text" id="tsd-search-field"/></div><ul class="results"><li class="state loading">Preparing search index...</li><li class="state failure">The search index is not available</li></ul><a href="index.html" class="title">@ludovicm67/lib-filetransfer</a></div><div class="table-cell" id="tsd-widgets"><div id="tsd-filter"><a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a><div class="tsd-filter-group"><div class="tsd-select" id="tsd-filter-visibility"><span class="tsd-select-label">All</span><ul class="tsd-select-list"><li data-value="public">Public</li><li data-value="protected">Public/Protected</li><li data-value="private" class="selected">All</li></ul></div> <input type="checkbox" id="tsd-filter-inherited" checked/><label class="tsd-widget" for="tsd-filter-inherited">Inherited</label><input type="checkbox" id="tsd-filter-externals" checked/><label class="tsd-widget" for="tsd-filter-externals">Externals</label></div></div><a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a></div></div></div></div><div class="tsd-page-title"><div class="container"><h1>@ludovicm67/lib-filetransfer</h1></div></div></header><div class="container container-main"><div class="row"><div class="col-8 col-content"><div class="tsd-panel tsd-typography">
-<a href="#lib-filetransfer" id="lib-filetransfer" style="color: inherit; text-decoration: none;">
-  <h1><code>lib-filetransfer</code></h1>
+<a href="#file-transfer-library" id="file-transfer-library" style="color: inherit; text-decoration: none;">
+  <h1>File transfer library</h1>
 </a>
-<p>This is a small JavaScript library that helps for implementing a file transfer application, where files should be splitted into smaller parts.</p>
+<p>This library is helpful if you want to send huge files to other users.</p>
+<p>Technical documentation can be found here: <a href="https://github.com/ludovicm67/lib-filetransfer">https://github.com/ludovicm67/lib-filetransfer</a></p>
+
+<a href="#features" id="features" style="color: inherit; text-decoration: none;">
+  <h2>Features</h2>
+</a>
+<p>Here are some of the supported features:</p>
+<ul>
+<li>this library is written using TypeScript:<ul>
+<li>nice autocompletion</li>
+<li>checking of types</li>
+</ul>
+</li>
+<li>split files into smaller parts that can be sent using the way you want</li>
+<li>integrated retry mechanism</li>
+<li>client can ask for a specific offset and limit</li>
+</ul>
+
+<a href="#understanding-the-logic-of-this-library" id="understanding-the-logic-of-this-library" style="color: inherit; text-decoration: none;">
+  <h2>Understanding the logic of this library</h2>
+</a>
+<p>Imagine you have two users: a sender and a receiver.
+The sender want to send a file to the receiver.
+Both of them will start by creating a file pool.
+The sender will store the file into his pool, and will get some metadata that will include a unique ID for this file.
+He will send the metadata to the other user using a communication channel of his choice.
+The receiver will store the received metadata into his pool, so that it is aware of the existence of the file.
+The receiver can display a message to the user asking if he wants to download the file or not.
+If he wants to download the file, a call should be performed to the pool to trigger the download.
+The library is not taking care about transmitting data to the other user, you will to take care about it yourself.
+You can use a WebRTC DataChannel or a WebSocket for example.
+That&#39;s why the library is asking for a callback function when you call the <code>downloadFile</code> method on the pool.
+You will need to send and receive data between both users, so that you can transmit requests and responses from both of them.
+If a part of the file was not received within a specified amount of time, it will retry a few time.
+If it is still failing after a specified amount of retries, it will throw an error.
+Once all the parts of the file are received by the receiver, the library will sort all parts, generate the file and store it as a Blob object.
+Starting now, you will be able to access the file, and open it in a new browser tab for the receiver user for example.
+You can also send a custom message to the sender saying that the file was fully received, … the only limit is now your imagination!</p>
+<p>Here is an illustrated flow between our two users:</p>
+<pre><code class="language-mermaid">sequenceDiagram
+  participant Sender
+  participant Receiver
+
+  Sender-&gt;&gt;Sender: Store file in the pool, get associated metadata
+  Sender-&gt;&gt;Receiver: Send metadata
+  Receiver-&gt;&gt;Receiver: Store metadata in the pool
+  Receiver-&gt;&gt;Receiver: Trigger download of a file
+  Receiver-&gt;&gt;Sender: Can I have part of file with id=ID from offset X1 and limit Y
+  Receiver-&gt;&gt;Sender: Can I have part of file with id=ID from offset X2 and limit Y
+  Receiver-&gt;&gt;Sender: Can I have part of file with id=ID from offset X3 and limit Y
+  Sender-&gt;&gt;Receiver: Here is part of file with id=ID from offset X1 and limit Y
+  Sender-&gt;&gt;Receiver: Here is part of file with id=ID from offset X3 and limit Y
+  Receiver-&gt;&gt;Receiver: Did not received part of file with id=ID from offset X2 within the specified amount of time, ask it again! (retry mechanism)
+  Receiver-&gt;&gt;Sender: Can I have part of file with id=ID from offset X2 and limit Y
+  Sender-&gt;&gt;Receiver: Here is part of file with id=ID from offset X2 and limit Y
+  Receiver-&gt;&gt;Sender: Can I have part of file with id=ID from offset X4 and limit Y
+  Receiver-&gt;&gt;Sender: Can I have part of file with id=ID from offset X5 and limit Y
+  Receiver-&gt;&gt;Sender: Can I have part of file with id=ID from offset X6 and limit Y
+  Sender-&gt;&gt;Receiver: Here is part of file with id=ID from offset X6 and limit Y
+  Sender-&gt;&gt;Receiver: Here is part of file with id=ID from offset X4 and limit Y
+  Sender-&gt;&gt;Receiver: Here is part of file with id=ID from offset X5 and limit Y
+  Sender--&gt;Receiver: …continue like this until all parts are fetched…
+  Receiver-&gt;&gt;Receiver: All parts are here, sort them, generate the file, store it as a Blob
+  Receiver-&gt;&gt;Receiver: Access the file
+</code></pre>
+<p>To summarize, you will need to take care of having a communication channel between users, and the library is doing the rest.</p>
 </div></div><div class="col-4 col-menu menu-sticky-wrap menu-highlight"><nav class="tsd-navigation primary"><ul><li class="current"><a href="modules.html">Exports</a></li></ul></nav><nav class="tsd-navigation secondary menu-sticky"><ul><li class="tsd-kind-class"><a href="classes/TransferFile.html" class="tsd-kind-icon">Transfer<wbr/>File</a></li><li class="tsd-kind-class"><a href="classes/TransferFilePool.html" class="tsd-kind-icon">Transfer<wbr/>File<wbr/>Pool</a></li><li class="tsd-kind-interface tsd-is-external"><a href="interfaces/Blob.html" class="tsd-kind-icon">Blob</a></li><li class="tsd-kind-type-alias"><a href="modules.html#AskFilePartCallback" class="tsd-kind-icon">Ask<wbr/>File<wbr/>Part<wbr/>Callback</a></li><li class="tsd-kind-type-alias"><a href="modules.html#TransferFileBlob" class="tsd-kind-icon">Transfer<wbr/>File<wbr/>Blob</a></li><li class="tsd-kind-type-alias"><a href="modules.html#TransferFileInfos" class="tsd-kind-icon">Transfer<wbr/>File<wbr/>Infos</a></li><li class="tsd-kind-type-alias"><a href="modules.html#TransferFileMetadata" class="tsd-kind-icon">Transfer<wbr/>File<wbr/>Metadata</a></li><li class="tsd-kind-type-alias"><a href="modules.html#TransferFilePoolOptions" class="tsd-kind-icon">Transfer<wbr/>File<wbr/>Pool<wbr/>Options</a></li><li class="tsd-kind-variable tsd-is-external"><a href="modules.html#Blob" class="tsd-kind-icon">Blob</a></li><li class="tsd-kind-function"><a href="modules.html#arrayBufferToString" class="tsd-kind-icon">array<wbr/>Buffer<wbr/>To<wbr/>String</a></li><li class="tsd-kind-function"><a href="modules.html#stringToArrayBuffer" class="tsd-kind-icon">string<wbr/>To<wbr/>Array<wbr/>Buffer</a></li></ul></nav></div></div></div><footer class="with-border-bottom"><div class="container"><h2>Legend</h2><div class="tsd-legend-group"><ul class="tsd-legend"><li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li><li class="tsd-kind-property tsd-parent-kind-class"><span class="tsd-kind-icon">Property</span></li><li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li></ul></div><h2>Settings</h2><p>Theme <select id="theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></p></div></footer><div class="container tsd-generator"><p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></div><div class="overlay"></div><script src="assets/main.js"></script></body></html>
