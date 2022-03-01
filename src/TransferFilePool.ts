@@ -55,8 +55,9 @@ export class TransferFilePool {
    * Store file metadata.
    *
    * @param metadata File metadata.
+   * @returns The ID of the file.
    */
-  storeFileMetadata(metadata: TransferFileMetadata) {
+  storeFileMetadata(metadata: TransferFileMetadata): string {
     // check presence of 'id' field
     if (!metadata.id) {
       throw new Error("no 'id' field");
@@ -82,6 +83,8 @@ export class TransferFilePool {
         metadata.bufferLength || 0,
       );
     }
+
+    return metadata.id;
   };
 
   /**

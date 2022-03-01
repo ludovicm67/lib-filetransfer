@@ -105,5 +105,5 @@ import { TransferFileMetadata } from "@ludovicm67/lib-filetransfer";
 
 // you have a variable called `fileMetadata` of type `TransferFileMetadata` containing the metadata received from the sender
 
-filePool.storeFileMetadata(fileMetadata);
+const fileId = filePool.storeFileMetadata(fileMetadata);
 ```
