@@ -1,3 +1,5 @@
+import { decode, encode } from "base64-arraybuffer";
+
 /**
  * Convert an ArrayBuffer to a string.
  *
@@ -5,7 +7,7 @@
  * @returns The string.
  */
 export const arrayBufferToString = (ab: ArrayBuffer): string => {
-  return new TextDecoder().decode(ab);
+  return encode(ab);
 };
 
 /**
@@ -15,5 +17,5 @@ export const arrayBufferToString = (ab: ArrayBuffer): string => {
  * @returns The ArrayBuffer.
  */
 export const stringToArrayBuffer = (str: string): ArrayBuffer => {
-  return new TextEncoder().encode(str).buffer;
+  return decode(str);
 };
