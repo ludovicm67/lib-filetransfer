@@ -22,6 +22,17 @@ describe("testing the TransferFilePool class", () => {
     expect(fileExists).toBeTrue();
   });
 
+  it("should return false if the file was deleted", async () => {
+    const pool = new TransferFilePool();
+    const blob = new Blob(["test"], {
+      type: "text/plain",
+    });
+    const { id } = await pool.addFile(blob, "test.txt");
+    pool.deleteFile(id);
+    const fileExists = pool.fileExists(id);
+    expect(fileExists).toBeFalse();
+  });
+
   it("should no throw if all required metadata fields are filled", async () => {
     const pool = new TransferFilePool();
     const blob = new Blob(["test"], {
