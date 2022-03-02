@@ -48,17 +48,17 @@ sequenceDiagram
   Sender->>Receiver: Send metadata
   Receiver->>Receiver: Store metadata in the pool
   Receiver->>Receiver: Trigger download of a file
-  Receiver->>Sender: Can I have part of file with id=ID from offset X1 and limit Y
-  Receiver->>Sender: Can I have part of file with id=ID from offset X2 and limit Y
-  Receiver->>Sender: Can I have part of file with id=ID from offset X3 and limit Y
+  Receiver->>Sender: Can I have part of file with id=ID from offset X1 and limit Y?
+  Receiver->>Sender: Can I have part of file with id=ID from offset X2 and limit Y?
+  Receiver->>Sender: Can I have part of file with id=ID from offset X3 and limit Y?
   Sender->>Receiver: Here is part of file with id=ID from offset X1 and limit Y
   Sender->>Receiver: Here is part of file with id=ID from offset X3 and limit Y
   Receiver->>Receiver: Did not received part of file with id=ID from offset X2 within the specified amount of time, ask it again! (retry mechanism)
-  Receiver->>Sender: Can I have part of file with id=ID from offset X2 and limit Y
+  Receiver->>Sender: Can I have part of file with id=ID from offset X2 and limit Y?
   Sender->>Receiver: Here is part of file with id=ID from offset X2 and limit Y
-  Receiver->>Sender: Can I have part of file with id=ID from offset X4 and limit Y
-  Receiver->>Sender: Can I have part of file with id=ID from offset X5 and limit Y
-  Receiver->>Sender: Can I have part of file with id=ID from offset X6 and limit Y
+  Receiver->>Sender: Can I have part of file with id=ID from offset X4 and limit Y?
+  Receiver->>Sender: Can I have part of file with id=ID from offset X5 and limit Y?
+  Receiver->>Sender: Can I have part of file with id=ID from offset X6 and limit Y?
   Sender->>Receiver: Here is part of file with id=ID from offset X6 and limit Y
   Sender->>Receiver: Here is part of file with id=ID from offset X4 and limit Y
   Sender->>Receiver: Here is part of file with id=ID from offset X5 and limit Y
@@ -170,3 +170,22 @@ filePool.receiveFilePart(fileId, offset, limit, data);
 The sender is able to send all the parts of the file, and the receiver to ask and store them.
 
 You now have all the logic to build your application!
+
+## Conversions
+
+The `data` variable we used in the previous section is an ArrayBuffer.
+In some cases, your communication channel may only allow the sending of strings.
+
+If you need to do some conversions, you can use the following utility functions:
+
+```ts
+// convert ArrayBuffer to a string
+import { arrayBufferToString } from "@ludovicm67/lib-filetransfer";
+// `ab` variable is an ArrayBuffer
+const string = arrayBufferToString(ab);
+
+// convert string to an ArrayBuffer
+import { stringToArrayBuffer } from "@ludovicm67/lib-filetransfer";
+// `str` variable is a string
+const arrayBuffer = stringToArrayBuffer(str);
+```
