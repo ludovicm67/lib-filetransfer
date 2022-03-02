@@ -20,13 +20,13 @@ export type TransferFilePoolOptions = {
 };
 
 export class TransferFilePool {
-  transferFiles: TransferFilePoolFiles;
+  private transferFiles: TransferFilePoolFiles;
 
   // configuration
-  maxBufferSize: number;
+  private maxBufferSize: number;
 
   // callbacks
-  askFilePartCallback: AskFilePartCallback;
+  private askFilePartCallback: AskFilePartCallback;
 
   constructor(options?: TransferFilePoolOptions) {
     this.transferFiles = {};
@@ -47,7 +47,7 @@ export class TransferFilePool {
    * @param fileId Id of the file.
    * @returns true if the file exists.
    */
-  fileExists(fileId: string): boolean {
+  public fileExists(fileId: string): boolean {
     return Object.keys(this.transferFiles).includes(fileId);
   }
 
@@ -57,7 +57,7 @@ export class TransferFilePool {
    * @param metadata File metadata.
    * @returns The ID of the file.
    */
-  storeFileMetadata(metadata: TransferFileMetadata): string {
+  public storeFileMetadata(metadata: TransferFileMetadata): string {
     // check presence of 'id' field
     if (!metadata.id) {
       throw new Error("no 'id' field");
@@ -92,7 +92,7 @@ export class TransferFilePool {
    *
    * @param fileId Id of the file.
    */
-  deleteFile(fileId: string): void {
+  public deleteFile(fileId: string): void {
     if (!this.fileExists(fileId)) {
       return;
     }
@@ -110,7 +110,7 @@ export class TransferFilePool {
    * @param fileId Id of the file.
    * @param askFilePartCallback Callback function to ask a specific part of a file.
    */
-  async downloadFile(fileId: string, askFilePartCallback?: AskFilePartCallback): Promise<void> {
+  public async downloadFile(fileId: string, askFilePartCallback?: AskFilePartCallback): Promise<void> {
     if (!this.fileExists(fileId)) {
       throw new Error(`file '#${fileId}' does not exist`);
     }
@@ -130,7 +130,7 @@ export class TransferFilePool {
    * @param name Name of the file.
    * @returns The metadata of the file.
    */
-  async addFile(blob: Blob, name: string): Promise<TransferFileMetadata> {
+  public async addFile(blob: Blob, name: string): Promise<TransferFileMetadata> {
     const fId = uuidv4();
 
     if (this.fileExists(fId)) {
@@ -152,7 +152,7 @@ export class TransferFilePool {
    * @param limit Maximum lenght of data we want to read.
    * @returns ArrayBuffer containing the requested part of the file.
    */
-  readFilePart(fileId: string, offset: number, limit: number): ArrayBuffer {
+  public readFilePart(fileId: string, offset: number, limit: number): ArrayBuffer {
     if (!this.fileExists(fileId)) {
       throw new Error(`file '#${fileId}' does not exist`);
     }
@@ -168,7 +168,7 @@ export class TransferFilePool {
    * @param limit Maximum length of read data.
    * @param data ArrayBuffer containing the data of defined part of the file.
    */
-  receiveFilePart(fileId: string, offset: number, limit: number, data: ArrayBuffer): void {
+  public receiveFilePart(fileId: string, offset: number, limit: number, data: ArrayBuffer): void {
     if (!this.fileExists(fileId)) {
       throw new Error(`file '#${fileId}' does not exist`);
     }
@@ -182,7 +182,7 @@ export class TransferFilePool {
    * @param fileId Id of the file.
    * @returns Informations representing the requested file.
    */
-  getFile(fileId: string): TransferFileBlob {
+  public getFile(fileId: string): TransferFileBlob {
     if (!this.fileExists(fileId)) {
       throw new Error(`file '#${fileId}' does not exist`);
     }
@@ -196,7 +196,7 @@ export class TransferFilePool {
    * @param fileId Id of the file.
    * @returns The Blob of the complete file.
    */
-  getBlob(fileId: string): Blob {
+  public getBlob(fileId: string): Blob {
     if (!this.fileExists(fileId)) {
       throw new Error(`file '#${fileId}' does not exist`);
     }

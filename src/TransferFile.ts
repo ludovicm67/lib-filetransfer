@@ -24,26 +24,26 @@ export type TransferFileBlob = {
 };
 
 export class TransferFile {
-  id: string; // file ID
+  private id: string; // file ID
 
   // metadata
-  name: string;
-  type: string;
-  size: number;
+  private name: string;
+  private type: string;
+  private size: number;
 
   // store data
-  parts: TransferFileParts = {}; // while fetching content
-  data: Blob | undefined = undefined; // full data
-  buffer: ArrayBuffer | undefined = undefined;
-  bufferLength: number;
+  private parts: TransferFileParts = {}; // while fetching content
+  private data: Blob | undefined = undefined; // full data
+  private buffer: ArrayBuffer | undefined = undefined;
+  private bufferLength: number;
 
   // state
-  complete: boolean = false; // data is ready and complete
-  errored: boolean = false; // an error occured
-  downloading: boolean = false; // the file is being downloaded
+  private complete: boolean = false; // data is ready and complete
+  private errored: boolean = false; // an error occured
+  private downloading: boolean = false; // the file is being downloaded
 
   // store error message (or some random information)
-  message: string | undefined = undefined;
+  private message: string | undefined = undefined;
 
   /**
    * Generate a new TransferFile instance.
@@ -67,7 +67,7 @@ export class TransferFile {
    *
    * @param isDownloading True if the file is being downloaded.
    */
-  setDownloading(isDownloading: boolean = true): void {
+  public setDownloading(isDownloading: boolean = true): void {
     this.downloading = isDownloading;
   }
 
@@ -76,7 +76,7 @@ export class TransferFile {
    *
    * @returns true if the file is downloading.
    */
-  isDownloading(): boolean {
+  public isDownloading(): boolean {
     return this.downloading;
   }
 
@@ -85,7 +85,7 @@ export class TransferFile {
    *
    * @param isComplete True if the download is complete.
    */
-  setComplete(isComplete: boolean = true): void {
+  public setComplete(isComplete: boolean = true): void {
     this.complete = isComplete;
   }
 
@@ -94,7 +94,7 @@ export class TransferFile {
    *
    * @returns true if the file is complete.
    */
-  isComplete(): boolean {
+  public isComplete(): boolean {
     return this.complete;
   }
 
@@ -104,7 +104,7 @@ export class TransferFile {
    * @param message A relevant error message.
    * @param isErrored True in case of an error.
    */
-  setError(message: string | undefined, isErrored: boolean = true) {
+  public setError(message: string | undefined, isErrored: boolean = true) {
     this.message = message;
     this.errored = isErrored;
   }
@@ -114,7 +114,7 @@ export class TransferFile {
    *
    * @returns Informations about the TransferFile.
    */
-  getInfos(): TransferFileInfos {
+  public getInfos(): TransferFileInfos {
     return {
       id: this.id,
       name: this.name,
@@ -134,7 +134,7 @@ export class TransferFile {
    *
    * @returns The Blob of the file.
    */
-  getBlob(): Blob {
+  public getBlob(): Blob {
     if (!this.isComplete()) {
       throw new Error("file is incomplete");
     }
@@ -169,7 +169,7 @@ export class TransferFile {
    * @param askFilePartCallback Function that will be called to ask for some parts of the file.
    * @returns
    */
-  async download(maxBufferSize: number, askFilePartCallback: AskFilePartCallback): Promise<void> {
+  public async download(maxBufferSize: number, askFilePartCallback: AskFilePartCallback): Promise<void> {
     if (this.isComplete()) {
       // nothing to do, since the file is already complete
       return;
@@ -206,7 +206,7 @@ export class TransferFile {
    *
    * @returns File metadata.
    */
-  getMetadata(): TransferFileMetadata {
+  public getMetadata(): TransferFileMetadata {
     return {
       id: this.id,
       name: this.name,
@@ -221,7 +221,7 @@ export class TransferFile {
    *
    * @returns All informations representing the file.
    */
-  getFile(): TransferFileBlob {
+  public getFile(): TransferFileBlob {
     if (!this.isComplete()) {
       throw new Error("file is incomplete");
     }
@@ -237,7 +237,7 @@ export class TransferFile {
   /**
    * Set a Blob as being the content of this file.
    */
-  async setBlob(blob: Blob): Promise<void> {
+  public async setBlob(blob: Blob): Promise<void> {
     const b = new Blob([blob], {type: blob.type});
     this.data = b;
     this.buffer = await b.arrayBuffer();
@@ -254,7 +254,7 @@ export class TransferFile {
    * @param limit Maximum number of bytes to return.
    * @returns ArrayBuffer with the requested file part.
    */
-  readFilePart(offset: number, limit: number): ArrayBuffer {
+  public readFilePart(offset: number, limit: number): ArrayBuffer {
     if (this.buffer === undefined) {
       throw new Error(`buffer is not defined for file '#${this.id}'`);
     }
@@ -269,7 +269,7 @@ export class TransferFile {
    * @param limit The requested limit.
    * @param data ArrayBuffer containing the requested data.
    */
-  receiveFilePart(offset: number, limit: number, data: ArrayBuffer): void {
+  public receiveFilePart(offset: number, limit: number, data: ArrayBuffer): void {
     this.parts[`${limit}-${offset}`] = data;
   }
 
@@ -281,7 +281,7 @@ export class TransferFile {
    * @param timeout Timeout in seconds (default: `1`)
    * @returns true of the part was received.
    */
-  async waitFilePart(offset: number, limit: number, timeout: number = 1): Promise<boolean> {
+  public async waitFilePart(offset: number, limit: number, timeout: number = 1): Promise<boolean> {
     if (this.isComplete()) {
       return true;
     }
@@ -305,7 +305,7 @@ export class TransferFile {
    * @param timeout Timeout for a single check in seconds (default: `1`)
    * @param retries Number of retries before considering it as a failure.
    */
-  async waitFilePartWithRetry(askFilePartCallback: AskFilePartCallback, offset: number, limit: number, timeout: number = 1, retries: number = 10): Promise<void> {
+  public async waitFilePartWithRetry(askFilePartCallback: AskFilePartCallback, offset: number, limit: number, timeout: number = 1, retries: number = 10): Promise<void> {
     let success = false;
 
     askFilePartCallback(this.id, offset, limit);
