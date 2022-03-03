@@ -1,6 +1,6 @@
 {
   "name": "@ludovicm67/lib-filetransfer",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Library to help building a file transfer application",
   "type": "module",
   "main": "lib/index.js",
