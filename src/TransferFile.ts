@@ -1,4 +1,5 @@
 import Blob from "cross-blob";
+import pLimit from "p-limit";
 import { AskFilePartCallback, TransferFileMetadata } from "./TransferFilePool.js";
 
 type TransferFileParts = Record<string, ArrayBuffer>;
@@ -167,9 +168,10 @@ export class TransferFile {
    *
    * @param maxBufferSize Maximum length for the data to ask at one time.
    * @param askFilePartCallback Function that will be called to ask for some parts of the file.
+   * @param parallelCalls Number of parallel calls to perform (default value: `1`).
    * @returns
    */
-  public async download(maxBufferSize: number, askFilePartCallback: AskFilePartCallback): Promise<void> {
+  public async download(maxBufferSize: number, askFilePartCallback: AskFilePartCallback, parallelCalls: number = 1): Promise<void> {
     if (this.isComplete()) {
       // nothing to do, since the file is already complete
       return;
@@ -187,10 +189,11 @@ export class TransferFile {
     this.setError(undefined, false);
 
     try {
+      const limit = pLimit(parallelCalls);
       const partsCount = Math.ceil(this.bufferLength / maxBufferSize);
-      await Promise.all([...Array(partsCount).keys()].map((offset) => {
-        return this.waitFilePartWithRetry(askFilePartCallback, offset, maxBufferSize);
-      }));
+      await Promise.all([...Array(partsCount).keys()].map((offset) => limit(() => {
+        return this.waitFilePartWithRetry(askFilePartCallback, offset * maxBufferSize, maxBufferSize);
+      })));
       this.setComplete(true);
       this.getBlob();
     } catch (e: any) {
