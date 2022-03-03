@@ -183,12 +183,10 @@ export class TransferFile {
     this.setError(undefined, false);
 
     try {
-      let offset = 0;
-      while (offset <= this.bufferLength) {
-        await this.waitFilePartWithRetry(askFilePartCallback, offset, maxBufferSize);
-        offset = offset + maxBufferSize;
-      }
-
+      const partsCount = Math.ceil(this.bufferLength / maxBufferSize);
+      await Promise.all([...Array(partsCount).keys()].map((offset) => {
+        return this.waitFilePartWithRetry(askFilePartCallback, offset, maxBufferSize);
+      }));
       this.setComplete(true);
       this.getBlob();
     } catch (e: any) {
