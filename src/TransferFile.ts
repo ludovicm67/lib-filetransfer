@@ -185,7 +185,6 @@ export class TransferFile {
     try {
       let offset = 0;
       while (offset <= this.bufferLength) {
-        askFilePartCallback(this.id, offset, maxBufferSize);
         await this.waitFilePartWithRetry(askFilePartCallback, offset, maxBufferSize);
         offset = offset + maxBufferSize;
       }
