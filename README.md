@@ -16,6 +16,7 @@ Here are some of the supported features:
 - split files into smaller parts that can be sent using the way you want
 - integrated retry mechanism
 - client can ask for a specific offset and limit
+- parallel requests
 
 ## Understanding the logic of this library
 

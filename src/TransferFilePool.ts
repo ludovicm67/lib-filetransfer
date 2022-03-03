@@ -17,6 +17,7 @@ export type AskFilePartCallback = (fileId: string, offset: number, limit: number
 export type TransferFilePoolOptions = {
   askFilePartCallback?: AskFilePartCallback;
   maxBufferSize?: number;
+  parallelCalls?: number;
 };
 
 export class TransferFilePool {
@@ -24,6 +25,7 @@ export class TransferFilePool {
 
   // configuration
   private maxBufferSize: number;
+  private parallelCalls: number;
 
   // callbacks
   private askFilePartCallback: AskFilePartCallback;
@@ -39,6 +41,7 @@ export class TransferFilePool {
     }
 
     this.maxBufferSize = options?.maxBufferSize !== undefined ? options.maxBufferSize : 1000;
+    this.parallelCalls = options?.parallelCalls !== undefined ? options.parallelCalls : 1;
   }
 
   /**
@@ -109,17 +112,19 @@ export class TransferFilePool {
    *
    * @param fileId Id of the file.
    * @param askFilePartCallback Callback function to ask a specific part of a file.
+   * @param parallelCalls Number of parallel calls to perform.
    */
-  public async downloadFile(fileId: string, askFilePartCallback?: AskFilePartCallback): Promise<void> {
+  public async downloadFile(fileId: string, askFilePartCallback?: AskFilePartCallback, parallelCalls?: number): Promise<void> {
     if (!this.fileExists(fileId)) {
       throw new Error(`file '#${fileId}' does not exist`);
     }
 
     const file = this.transferFiles[fileId];
+    const calls = parallelCalls ? parallelCalls : this.parallelCalls;
     if (askFilePartCallback !== undefined) {
-      await file.download(this.maxBufferSize, askFilePartCallback);
+      await file.download(this.maxBufferSize, askFilePartCallback, calls);
     } else {
-      await file.download(this.maxBufferSize, this.askFilePartCallback);
+      await file.download(this.maxBufferSize, this.askFilePartCallback, calls);
     }
   }
 
