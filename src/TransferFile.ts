@@ -179,6 +179,10 @@ export class TransferFile {
       return;
     }
 
+    if (maxBufferSize <= 0) {
+      throw new Error(`maxBufferSize should be greater than 0, got: ${maxBufferSize}`);
+    }
+
     this.setDownloading(true);
     this.setError(undefined, false);
 
