@@ -71,17 +71,12 @@ export class TransferFilePool {
       throw new Error("no 'name' field");
     }
 
-    // check presence of 'type' field
-    if (!metadata.type) {
-      throw new Error("no 'type' field");
-    }
-
     // only store it if the file is not in the pool
     if (!this.fileExists(metadata.id)) {
       this.transferFiles[metadata.id] = new TransferFile(
         metadata.id,
         metadata.name,
-        metadata.type || "text/plain",
+        metadata.type || "application/octet-stream",
         metadata.size || 0,
         metadata.bufferLength || 0,
       );

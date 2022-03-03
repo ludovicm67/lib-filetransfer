@@ -72,12 +72,4 @@ describe("testing the TransferFilePool class", () => {
       id: "randomId",
     })).toThrowError("no 'name' field");
   });
-
-  it("should throw if the 'type' field is missing", () => {
-    const pool = new TransferFilePool();
-    expect(() => pool.storeFileMetadata({
-      id: "randomId",
-      name: "test.txt",
-    })).toThrowError("no 'type' field");
-  });
 });
