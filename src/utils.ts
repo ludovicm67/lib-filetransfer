@@ -17,5 +17,5 @@ export const arrayBufferToString = (ab: ArrayBuffer): string => {
  * @returns The ArrayBuffer.
  */
 export const stringToArrayBuffer = (str: string): ArrayBuffer => {
-  return decode(str);
+  return decode(`${str}`);
 };
