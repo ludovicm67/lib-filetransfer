@@ -1,20 +1,23 @@
 import Blob from "cross-blob";
 import pLimit from "p-limit";
-import { AskFilePartCallback, TransferFileMetadata } from "./TransferFilePool.js";
+import {
+  AskFilePartCallback,
+  TransferFileMetadata,
+} from "./TransferFilePool.js";
 
 type TransferFileParts = Record<string, ArrayBuffer>;
 
 export type TransferFileInfos = {
-  id: string,
-  name: string,
-  size: number,
+  id: string;
+  name: string;
+  size: number;
   bufferLength: number;
 
-  complete: boolean,
-  downloading: boolean,
-  errored: boolean,
+  complete: boolean;
+  downloading: boolean;
+  errored: boolean;
 
-  message: string | undefined,
+  message: string | undefined;
 };
 
 export type TransferFileBlob = {
@@ -46,6 +49,10 @@ export class TransferFile {
   // store error message (or some random information)
   private message: string | undefined = undefined;
 
+  // configuration
+  private timeout: number = 1;
+  private retries: number = 10;
+
   /**
    * Generate a new TransferFile instance.
    *
@@ -54,13 +61,30 @@ export class TransferFile {
    * @param type Type of the file.
    * @param size Size of the file.
    * @param bufferLength Length of the internal buffer.
+   * @param timeout Timeout for a single check in seconds.
+   * @param retries Number of retries before considering it as a failure.
    */
-  constructor(id: string, name: string, type: string, size: number, bufferLength: number) {
+  constructor(
+    id: string,
+    name: string,
+    type: string,
+    size: number,
+    bufferLength: number,
+    timeout?: number,
+    retries?: number
+  ) {
     this.id = id;
     this.name = name;
     this.type = type;
     this.size = size;
     this.bufferLength = bufferLength;
+
+    if (timeout !== undefined) {
+      this.timeout = timeout;
+    }
+    if (retries !== undefined) {
+      this.retries = retries;
+    }
   }
 
   /**
@@ -127,7 +151,7 @@ export class TransferFile {
       errored: this.errored,
 
       message: this.message,
-    }
+    };
   }
 
   /**
@@ -142,22 +166,27 @@ export class TransferFile {
 
     // generate the blob if it does not exist
     if (this.data === undefined) {
-      this.data = new Blob(Object.keys(this.parts).sort((x, y) => {
-        const offsetX = parseInt(x.replace(/.*-/, ''), 10);
-        const offsetY = parseInt(y.replace(/.*-/, ''), 10);
+      this.data = new Blob(
+        Object.keys(this.parts)
+          .sort((x, y) => {
+            const offsetX = parseInt(x.replace(/.*-/, ""), 10);
+            const offsetY = parseInt(y.replace(/.*-/, ""), 10);
 
-        if (offsetX < offsetY) {
-          return -1;
+            if (offsetX < offsetY) {
+              return -1;
+            }
+
+            if (offsetX > offsetY) {
+              return 1;
+            }
+
+            return 0;
+          })
+          .map((fPart) => this.parts[fPart]),
+        {
+          type: this.type,
         }
-
-        if (offsetX > offsetY) {
-          return 1;
-        }
-
-        return 0;
-      }).map((fPart) => this.parts[fPart]), {
-        type: this.type,
-      });
+      );
     }
 
     return this.data;
@@ -169,9 +198,17 @@ export class TransferFile {
    * @param maxBufferSize Maximum length for the data to ask at one time.
    * @param askFilePartCallback Function that will be called to ask for some parts of the file.
    * @param parallelCalls Number of parallel calls to perform (default value: `1`).
+   * @param timeout Timeout for a single check in seconds.
+   * @param retries Number of retries before considering it as a failure.
    * @returns
    */
-  public async download(maxBufferSize: number, askFilePartCallback: AskFilePartCallback, parallelCalls: number = 1): Promise<void> {
+  public async download(
+    maxBufferSize: number,
+    askFilePartCallback: AskFilePartCallback,
+    parallelCalls: number = 1,
+    timeout?: number,
+    retries?: number
+  ): Promise<void> {
     if (this.isComplete()) {
       // nothing to do, since the file is already complete
       return;
@@ -182,7 +219,16 @@ export class TransferFile {
     }
 
     if (maxBufferSize <= 0) {
-      throw new Error(`maxBufferSize should be greater than 0, got: ${maxBufferSize}`);
+      throw new Error(
+        `maxBufferSize should be greater than 0, got: ${maxBufferSize}`
+      );
+    }
+
+    if (timeout === undefined) {
+      timeout = this.timeout;
+    }
+    if (retries === undefined) {
+      retries = this.retries;
     }
 
     this.setDownloading(true);
@@ -191,9 +237,19 @@ export class TransferFile {
     try {
       const limit = pLimit(parallelCalls);
       const partsCount = Math.ceil(this.bufferLength / maxBufferSize);
-      await Promise.all([...Array(partsCount).keys()].map((offset) => limit(() => {
-        return this.waitFilePartWithRetry(askFilePartCallback, offset * maxBufferSize, maxBufferSize);
-      })));
+      await Promise.all(
+        [...Array(partsCount).keys()].map((offset) =>
+          limit(() => {
+            return this.waitFilePartWithRetry(
+              askFilePartCallback,
+              offset * maxBufferSize,
+              maxBufferSize,
+              timeout,
+              retries
+            );
+          })
+        )
+      );
       this.setComplete(true);
       this.getBlob();
     } catch (e: any) {
@@ -242,7 +298,7 @@ export class TransferFile {
    * Set a Blob as being the content of this file.
    */
   public async setBlob(blob: Blob): Promise<void> {
-    const b = new Blob([blob], {type: blob.type});
+    const b = new Blob([blob], { type: blob.type });
     this.data = b;
     this.buffer = await b.arrayBuffer();
     this.bufferLength = this.buffer.byteLength;
@@ -273,7 +329,11 @@ export class TransferFile {
    * @param limit The requested limit.
    * @param data ArrayBuffer containing the requested data.
    */
-  public receiveFilePart(offset: number, limit: number, data: ArrayBuffer): void {
+  public receiveFilePart(
+    offset: number,
+    limit: number,
+    data: ArrayBuffer
+  ): void {
     this.parts[`${limit}-${offset}`] = data;
   }
 
@@ -285,7 +345,11 @@ export class TransferFile {
    * @param timeout Timeout in seconds (default: `1`)
    * @returns true of the part was received.
    */
-  public async waitFilePart(offset: number, limit: number, timeout: number = 1): Promise<boolean> {
+  public async waitFilePart(
+    offset: number,
+    limit: number,
+    timeout: number = 1
+  ): Promise<boolean> {
     if (this.isComplete()) {
       return true;
     }
@@ -294,7 +358,7 @@ export class TransferFile {
       if (this.parts && this.parts[`${limit}-${offset}`]) {
         return true;
       }
-      await new Promise(r => setTimeout(r, 100));
+      await new Promise((r) => setTimeout(r, 100));
     }
 
     return false;
@@ -306,10 +370,22 @@ export class TransferFile {
    * @param askFilePartCallback Function to ask a file part to the sender.
    * @param offset Offset from the start.
    * @param limit Maximum number of bytes that we can read.
-   * @param timeout Timeout for a single check in seconds (default: `1`)
+   * @param timeout Timeout for a single check in seconds.
    * @param retries Number of retries before considering it as a failure.
    */
-  public async waitFilePartWithRetry(askFilePartCallback: AskFilePartCallback, offset: number, limit: number, timeout: number = 1, retries: number = 10): Promise<void> {
+  public async waitFilePartWithRetry(
+    askFilePartCallback: AskFilePartCallback,
+    offset: number,
+    limit: number,
+    timeout?: number,
+    retries?: number
+  ): Promise<void> {
+    if (timeout === undefined) {
+      timeout = this.timeout;
+    }
+    if (retries === undefined) {
+      retries = this.retries;
+    }
     let success = false;
 
     askFilePartCallback(this.id, offset, limit);
@@ -326,7 +402,9 @@ export class TransferFile {
     }
 
     if (!success) {
-      throw new Error(`missing part (limit=${limit}, offset=${offset}) for file '#${this.id}'`);
+      throw new Error(
+        `missing part (limit=${limit}, offset=${offset}) for file '#${this.id}'`
+      );
     }
   }
 }
