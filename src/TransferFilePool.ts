@@ -99,7 +99,9 @@ export class TransferFilePool {
         metadata.name,
         metadata.type || "application/octet-stream",
         metadata.size || 0,
-        metadata.bufferLength || 0
+        metadata.bufferLength || 0,
+        this.timeout,
+        this.retries
       );
     }
 

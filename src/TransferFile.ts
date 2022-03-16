@@ -253,8 +253,12 @@ export class TransferFile {
       this.setComplete(true);
       this.getBlob();
     } catch (e: any) {
+      const msg = e?.message || "something went wrong";
       this.setComplete(false);
-      this.setError(e?.message || "something went wrong");
+      this.setError(msg);
+
+      // re-throw the error we catched
+      throw new Error(msg);
     }
 
     this.setDownloading(false);

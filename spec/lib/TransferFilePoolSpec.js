@@ -373,4 +373,50 @@ describe("testing the TransferFilePool class", () => {
     // file should not be corrupted
     expect(finalContent).toEqual("Hello world!");
   });
+
+
+  it("should throw because of too many retries", async () => {
+    /**
+     * SENDER
+     */
+    const senderPool = new TransferFilePool({});
+    const file = new Blob(["Hello world!"], {
+      type: "text/plain",
+    });
+    const fileMetadata = await senderPool.addFile(file, "test.txt");
+
+    /**
+     * RECEIVER
+     */
+    let sendCb = (_fileId, _offset, _limit, _data) => {};
+    const receiverPool = new TransferFilePool({
+      maxBufferSize: 5,
+      parallelCalls: 100,
+      askFilePartCallback: async (fileId, offset, limit) => {
+        // imagine the receiver sending a message to the sender to ask this part of this file…
+
+        // sender part:
+        const partData = senderPool.readFilePart(fileId, offset, limit);
+
+        // imagine the sender sends the data to the receiver…
+        await new Promise(r => setTimeout(r, 3500)); // default timeout is set to 1000
+
+        // receiver part:
+        sendCb(fileId, offset, limit, partData);
+      },
+      retries: 1,
+    });
+    sendCb = (fileId, offset, limit, data) => {
+      receiverPool.receiveFilePart(fileId, offset, limit, data);
+    };
+
+    // imagine the sender sent the fileMetadata on a dedicated channel…
+    const receivedFileMetadata = {...fileMetadata};
+
+    // so we store the file metadata in the pool
+    receiverPool.storeFileMetadata(receivedFileMetadata);
+
+    // imagine the user click on the download button
+    await expectAsync(receiverPool.downloadFile(receivedFileMetadata.id)).toBeRejectedWithError(/^missing part/);
+  });
 });
