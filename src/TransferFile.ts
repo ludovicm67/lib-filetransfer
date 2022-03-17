@@ -342,7 +342,18 @@ export class TransferFile {
   }
 
   /**
-   * Check for presence of a specific part of the file.
+   * Check the presence of a specific part of the file.
+   *
+   * @param offset Offset from the start.
+   * @param limit The requested limit.
+   * @returns true if the part exists or if the file is complete.
+   */
+  public hasPart(offset: number, limit: number) {
+    return this.parts && this.parts[`${limit}-${offset}`];
+  }
+
+  /**
+   * Wait and check for presence of a specific part of the file.
    *
    * @param offset Offset from the start.
    * @param limit The requested limit.
@@ -359,7 +370,7 @@ export class TransferFile {
     }
 
     for (let i = timeout * 10; i >= 0; i--) {
-      if (this.parts && this.parts[`${limit}-${offset}`]) {
+      if (this.hasPart(offset, limit)) {
         return true;
       }
       await new Promise((r) => setTimeout(r, 100));
@@ -390,6 +401,16 @@ export class TransferFile {
     if (retries === undefined) {
       retries = this.retries;
     }
+
+    // no need to ask for this part if it already exists
+    if (this.hasPart(offset, limit)) {
+      return;
+    }
+
+    if (!this.isDownloading()) {
+      throw new Error("download aborted");
+    }
+
     let success = false;
 
     askFilePartCallback(this.id, offset, limit);
