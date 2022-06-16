@@ -44,7 +44,6 @@ Here is an illustrated flow between our two users:
 sequenceDiagram
   participant Sender
   participant Receiver
-
   Sender->>Sender: Store file in the pool, get associated metadata
   Sender->>Receiver: Send metadata
   Receiver->>Receiver: Store metadata in the pool
