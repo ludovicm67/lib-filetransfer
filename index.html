@@ -1,4 +1,45 @@
-<!DOCTYPE html><html class="default"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>@ludovicm67/lib-filetransfer</title><meta name="description" content="Documentation for @ludovicm67/lib-filetransfer"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="assets/style.css"/><link rel="stylesheet" href="assets/highlight.css"/><script async src="assets/search.js" id="search-script"></script></head><body><script>document.body.classList.add(localStorage.getItem("tsd-theme") || "os")</script><header><div class="tsd-page-toolbar"><div class="container"><div class="table-wrap"><div class="table-cell" id="tsd-search" data-base="."><div class="field"><label for="tsd-search-field" class="tsd-widget search no-caption">Search</label><input type="text" id="tsd-search-field"/></div><ul class="results"><li class="state loading">Preparing search index...</li><li class="state failure">The search index is not available</li></ul><a href="index.html" class="title">@ludovicm67/lib-filetransfer</a></div><div class="table-cell" id="tsd-widgets"><div id="tsd-filter"><a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a><div class="tsd-filter-group"><div class="tsd-select" id="tsd-filter-visibility"><span class="tsd-select-label">All</span><ul class="tsd-select-list"><li data-value="public">Public</li><li data-value="protected">Public/Protected</li><li data-value="private" class="selected">All</li></ul></div> <input type="checkbox" id="tsd-filter-inherited" checked/><label class="tsd-widget" for="tsd-filter-inherited">Inherited</label><input type="checkbox" id="tsd-filter-externals" checked/><label class="tsd-widget" for="tsd-filter-externals">Externals</label></div></div><a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a></div></div></div></div><div class="tsd-page-title"><div class="container"><h1>@ludovicm67/lib-filetransfer </h1></div></div></header><div class="container container-main"><div class="row"><div class="col-8 col-content"><div class="tsd-panel tsd-typography">
+<!DOCTYPE html><html class="default"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>@ludovicm67/lib-filetransfer</title><meta name="description" content="Documentation for @ludovicm67/lib-filetransfer"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="assets/style.css"/><link rel="stylesheet" href="assets/highlight.css"/><script async src="assets/search.js" id="search-script"></script>
+<style>
+:root.mermaid-enabled .mermaid-block > pre {
+  display: none;
+}
+:root:not(.mermaid-enabled) .mermaid-block > .mermaid {
+  display: none !important;
+}
+
+.mermaid-block > .mermaid[data-inserted].dark {
+  display: var(--mermaid-dark-display);
+}
+.mermaid-block > .mermaid[data-inserted].light {
+  display: var(--mermaid-light-display);
+}
+
+:root {
+  --mermaid-dark-display: none;
+  --mermaid-light-display: block;
+}
+@media (prefers-color-scheme: light) {
+  :root {
+    --mermaid-dark-display: none;
+    --mermaid-light-display: block;
+  }
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --mermaid-dark-display: block;
+    --mermaid-light-display: none;
+  }
+}
+body.light, :root[data-theme="light"] {
+  --mermaid-dark-display: none;
+  --mermaid-light-display: block;
+}
+body.dark, :root[data-theme="dark"] {
+  --mermaid-dark-display: block;
+  --mermaid-light-display: none;
+}
+</style>
+</head><body><script>document.body.classList.add(localStorage.getItem("tsd-theme") || "os")</script><header><div class="tsd-page-toolbar"><div class="container"><div class="table-wrap"><div class="table-cell" id="tsd-search" data-base="."><div class="field"><label for="tsd-search-field" class="tsd-widget search no-caption">Search</label><input type="text" id="tsd-search-field"/></div><ul class="results"><li class="state loading">Preparing search index...</li><li class="state failure">The search index is not available</li></ul><a href="index.html" class="title">@ludovicm67/lib-filetransfer</a></div><div class="table-cell" id="tsd-widgets"><div id="tsd-filter"><a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a><div class="tsd-filter-group"><div class="tsd-select" id="tsd-filter-visibility"><span class="tsd-select-label">All</span><ul class="tsd-select-list"><li data-value="public">Public</li><li data-value="protected">Public/Protected</li><li data-value="private" class="selected">All</li></ul></div> <input type="checkbox" id="tsd-filter-inherited" checked/><label class="tsd-widget" for="tsd-filter-inherited">Inherited</label><input type="checkbox" id="tsd-filter-externals" checked/><label class="tsd-widget" for="tsd-filter-externals">Externals</label></div></div><a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a></div></div></div></div><div class="tsd-page-title"><div class="container"><h1>@ludovicm67/lib-filetransfer </h1></div></div></header><div class="container container-main"><div class="row"><div class="col-8 col-content"><div class="tsd-panel tsd-typography">
 <a href="#file-transfer-library" id="file-transfer-library" style="color: inherit; text-decoration: none;">
   <h1>File transfer library</h1>
 </a>
@@ -43,10 +84,10 @@ Once all the parts of the file are received by the receiver, the library will so
 Starting now, you will be able to access the file, and open it in a new browser tab for the receiver user for example.
 You can also send a custom message to the sender saying that the file was fully received, … the only limit is now your imagination!</p>
 <p>Here is an illustrated flow between our two users:</p>
-<pre><code class="language-mermaid">sequenceDiagram
+<div class="mermaid-block"><div class="mermaid dark">%%{init:{"theme":"dark"}}%%
+sequenceDiagram
   participant Sender
   participant Receiver
-
   Sender-&gt;&gt;Sender: Store file in the pool, get associated metadata
   Sender-&gt;&gt;Receiver: Send metadata
   Receiver-&gt;&gt;Receiver: Store metadata in the pool
@@ -67,8 +108,55 @@ You can also send a custom message to the sender saying that the file was fully 
   Sender-&gt;&gt;Receiver: Here is part of file with id=ID from offset X5 and limit Y
   Sender--&gt;Receiver: …continue like this until all parts are fetched…
   Receiver-&gt;&gt;Receiver: All parts are here, sort them, generate the file, store it as a Blob
-  Receiver-&gt;&gt;Receiver: Access the file
-</code></pre>
+  Receiver-&gt;&gt;Receiver: Access the file</div><div class="mermaid light">%%{init:{"theme":"default"}}%%
+sequenceDiagram
+  participant Sender
+  participant Receiver
+  Sender-&gt;&gt;Sender: Store file in the pool, get associated metadata
+  Sender-&gt;&gt;Receiver: Send metadata
+  Receiver-&gt;&gt;Receiver: Store metadata in the pool
+  Receiver-&gt;&gt;Receiver: Trigger download of a file
+  Receiver-&gt;&gt;Sender: Can I have part of file with id=ID from offset X1 and limit Y?
+  Receiver-&gt;&gt;Sender: Can I have part of file with id=ID from offset X2 and limit Y?
+  Receiver-&gt;&gt;Sender: Can I have part of file with id=ID from offset X3 and limit Y?
+  Sender-&gt;&gt;Receiver: Here is part of file with id=ID from offset X1 and limit Y
+  Sender-&gt;&gt;Receiver: Here is part of file with id=ID from offset X3 and limit Y
+  Receiver-&gt;&gt;Receiver: Did not received part of file with id=ID from offset X2 within the specified amount of time, ask it again! (retry mechanism)
+  Receiver-&gt;&gt;Sender: Can I have part of file with id=ID from offset X2 and limit Y?
+  Sender-&gt;&gt;Receiver: Here is part of file with id=ID from offset X2 and limit Y
+  Receiver-&gt;&gt;Sender: Can I have part of file with id=ID from offset X4 and limit Y?
+  Receiver-&gt;&gt;Sender: Can I have part of file with id=ID from offset X5 and limit Y?
+  Receiver-&gt;&gt;Sender: Can I have part of file with id=ID from offset X6 and limit Y?
+  Sender-&gt;&gt;Receiver: Here is part of file with id=ID from offset X6 and limit Y
+  Sender-&gt;&gt;Receiver: Here is part of file with id=ID from offset X4 and limit Y
+  Sender-&gt;&gt;Receiver: Here is part of file with id=ID from offset X5 and limit Y
+  Sender--&gt;Receiver: …continue like this until all parts are fetched…
+  Receiver-&gt;&gt;Receiver: All parts are here, sort them, generate the file, store it as a Blob
+  Receiver-&gt;&gt;Receiver: Access the file</div><pre><code class="language-mermaid">sequenceDiagram
+  participant Sender
+  participant Receiver
+  Sender-&gt;&gt;Sender: Store file in the pool, get associated metadata
+  Sender-&gt;&gt;Receiver: Send metadata
+  Receiver-&gt;&gt;Receiver: Store metadata in the pool
+  Receiver-&gt;&gt;Receiver: Trigger download of a file
+  Receiver-&gt;&gt;Sender: Can I have part of file with id=ID from offset X1 and limit Y?
+  Receiver-&gt;&gt;Sender: Can I have part of file with id=ID from offset X2 and limit Y?
+  Receiver-&gt;&gt;Sender: Can I have part of file with id=ID from offset X3 and limit Y?
+  Sender-&gt;&gt;Receiver: Here is part of file with id=ID from offset X1 and limit Y
+  Sender-&gt;&gt;Receiver: Here is part of file with id=ID from offset X3 and limit Y
+  Receiver-&gt;&gt;Receiver: Did not received part of file with id=ID from offset X2 within the specified amount of time, ask it again! (retry mechanism)
+  Receiver-&gt;&gt;Sender: Can I have part of file with id=ID from offset X2 and limit Y?
+  Sender-&gt;&gt;Receiver: Here is part of file with id=ID from offset X2 and limit Y
+  Receiver-&gt;&gt;Sender: Can I have part of file with id=ID from offset X4 and limit Y?
+  Receiver-&gt;&gt;Sender: Can I have part of file with id=ID from offset X5 and limit Y?
+  Receiver-&gt;&gt;Sender: Can I have part of file with id=ID from offset X6 and limit Y?
+  Sender-&gt;&gt;Receiver: Here is part of file with id=ID from offset X6 and limit Y
+  Sender-&gt;&gt;Receiver: Here is part of file with id=ID from offset X4 and limit Y
+  Sender-&gt;&gt;Receiver: Here is part of file with id=ID from offset X5 and limit Y
+  Sender--&gt;Receiver: …continue like this until all parts are fetched…
+  Receiver-&gt;&gt;Receiver: All parts are here, sort them, generate the file, store it as a Blob
+  Receiver-&gt;&gt;Receiver: Access the file</code></pre></div>
+
 <p>To summarize, you will need to take care of having a communication channel between users, and the library is doing the rest.</p>
 
 <a href="#integration" id="integration" style="color: inherit; text-decoration: none;">
@@ -110,4 +198,31 @@ In some cases, your communication channel may only allow the sending of strings.
 <p>If you need to do some conversions, you can use the following utility functions:</p>
 <pre><code class="language-ts"><span class="hl-8">// convert ArrayBuffer to a string</span><br/><span class="hl-1">import</span><span class="hl-0"> { </span><span class="hl-2">arrayBufferToString</span><span class="hl-0"> } </span><span class="hl-1">from</span><span class="hl-0"> </span><span class="hl-3">&quot;@ludovicm67/lib-filetransfer&quot;</span><span class="hl-0">;</span><br/><span class="hl-8">// `ab` variable is an ArrayBuffer</span><br/><span class="hl-4">const</span><span class="hl-0"> </span><span class="hl-5">string</span><span class="hl-0"> = </span><span class="hl-6">arrayBufferToString</span><span class="hl-0">(</span><span class="hl-2">ab</span><span class="hl-0">);</span><br/><br/><span class="hl-8">// convert string to an ArrayBuffer</span><br/><span class="hl-1">import</span><span class="hl-0"> { </span><span class="hl-2">stringToArrayBuffer</span><span class="hl-0"> } </span><span class="hl-1">from</span><span class="hl-0"> </span><span class="hl-3">&quot;@ludovicm67/lib-filetransfer&quot;</span><span class="hl-0">;</span><br/><span class="hl-8">// `str` variable is a string</span><br/><span class="hl-4">const</span><span class="hl-0"> </span><span class="hl-5">arrayBuffer</span><span class="hl-0"> = </span><span class="hl-6">stringToArrayBuffer</span><span class="hl-0">(</span><span class="hl-2">str</span><span class="hl-0">);</span>
 </code></pre>
-</div></div><div class="col-4 col-menu menu-sticky-wrap menu-highlight"><nav class="tsd-navigation primary"><ul><li class="current"><a href="modules.html">Exports</a></li></ul></nav><nav class="tsd-navigation secondary menu-sticky"><ul><li class="tsd-kind-class"><a href="classes/TransferFile.html" class="tsd-kind-icon">Transfer<wbr/>File</a></li><li class="tsd-kind-class"><a href="classes/TransferFilePool.html" class="tsd-kind-icon">Transfer<wbr/>File<wbr/>Pool</a></li><li class="tsd-kind-interface tsd-is-external"><a href="interfaces/Blob.html" class="tsd-kind-icon">Blob</a></li><li class="tsd-kind-type-alias"><a href="modules.html#AskFilePartCallback" class="tsd-kind-icon">Ask<wbr/>File<wbr/>Part<wbr/>Callback</a></li><li class="tsd-kind-type-alias"><a href="modules.html#TransferFileBlob" class="tsd-kind-icon">Transfer<wbr/>File<wbr/>Blob</a></li><li class="tsd-kind-type-alias"><a href="modules.html#TransferFileInfos" class="tsd-kind-icon">Transfer<wbr/>File<wbr/>Infos</a></li><li class="tsd-kind-type-alias"><a href="modules.html#TransferFileMetadata" class="tsd-kind-icon">Transfer<wbr/>File<wbr/>Metadata</a></li><li class="tsd-kind-type-alias"><a href="modules.html#TransferFilePoolOptions" class="tsd-kind-icon">Transfer<wbr/>File<wbr/>Pool<wbr/>Options</a></li><li class="tsd-kind-variable tsd-is-external"><a href="modules.html#Blob" class="tsd-kind-icon">Blob</a></li><li class="tsd-kind-function"><a href="modules.html#arrayBufferToString" class="tsd-kind-icon">array<wbr/>Buffer<wbr/>To<wbr/>String</a></li><li class="tsd-kind-function"><a href="modules.html#stringToArrayBuffer" class="tsd-kind-icon">string<wbr/>To<wbr/>Array<wbr/>Buffer</a></li></ul></nav></div></div></div><footer class="with-border-bottom"><div class="container"><h2>Legend</h2><div class="tsd-legend-group"><ul class="tsd-legend"><li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li><li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li></ul><ul class="tsd-legend"><li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private property</span></li></ul></div><h2>Settings</h2><p>Theme <select id="theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></p></div></footer><div class="container tsd-generator"><p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></div><div class="overlay"></div><script src="assets/main.js"></script></body></html>
+</div></div><div class="col-4 col-menu menu-sticky-wrap menu-highlight"><nav class="tsd-navigation primary"><ul><li class="current"><a href="modules.html">Exports</a></li></ul></nav><nav class="tsd-navigation secondary menu-sticky"><ul><li class="tsd-kind-class"><a href="classes/TransferFile.html" class="tsd-kind-icon">Transfer<wbr/>File</a></li><li class="tsd-kind-class"><a href="classes/TransferFilePool.html" class="tsd-kind-icon">Transfer<wbr/>File<wbr/>Pool</a></li><li class="tsd-kind-interface tsd-is-external"><a href="interfaces/Blob.html" class="tsd-kind-icon">Blob</a></li><li class="tsd-kind-type-alias"><a href="modules.html#AskFilePartCallback" class="tsd-kind-icon">Ask<wbr/>File<wbr/>Part<wbr/>Callback</a></li><li class="tsd-kind-type-alias"><a href="modules.html#TransferFileBlob" class="tsd-kind-icon">Transfer<wbr/>File<wbr/>Blob</a></li><li class="tsd-kind-type-alias"><a href="modules.html#TransferFileInfos" class="tsd-kind-icon">Transfer<wbr/>File<wbr/>Infos</a></li><li class="tsd-kind-type-alias"><a href="modules.html#TransferFileMetadata" class="tsd-kind-icon">Transfer<wbr/>File<wbr/>Metadata</a></li><li class="tsd-kind-type-alias"><a href="modules.html#TransferFilePoolOptions" class="tsd-kind-icon">Transfer<wbr/>File<wbr/>Pool<wbr/>Options</a></li><li class="tsd-kind-variable tsd-is-external"><a href="modules.html#Blob" class="tsd-kind-icon">Blob</a></li><li class="tsd-kind-function"><a href="modules.html#arrayBufferToString" class="tsd-kind-icon">array<wbr/>Buffer<wbr/>To<wbr/>String</a></li><li class="tsd-kind-function"><a href="modules.html#stringToArrayBuffer" class="tsd-kind-icon">string<wbr/>To<wbr/>Array<wbr/>Buffer</a></li></ul></nav></div></div></div><footer class="with-border-bottom"><div class="container"><h2>Legend</h2><div class="tsd-legend-group"><ul class="tsd-legend"><li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li><li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li></ul><ul class="tsd-legend"><li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private property</span></li></ul></div><h2>Settings</h2><p>Theme <select id="theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></p></div></footer><div class="container tsd-generator"><p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></div><div class="overlay"></div><script src="assets/main.js"></script>
+<script src="https://unpkg.com/mermaid@latest/dist/mermaid.min.js"></script>
+<script>
+(function() {
+  if (typeof mermaid === "undefined") {
+    return;
+  }
+
+  document.documentElement.classList.add("mermaid-enabled");
+
+  mermaid.initialize({startOnLoad:true});
+
+  requestAnimationFrame(function check() {
+    let some = false;
+    document.querySelectorAll("div.mermaid:not([data-inserted])").forEach(div => {
+      some = true;
+      if (div.querySelector("svg")) {
+        div.dataset.inserted = true;
+      }
+    });
+
+    if (some) {
+      requestAnimationFrame(check);
+    }
+  });
+})();
+</script>
+</body></html>
