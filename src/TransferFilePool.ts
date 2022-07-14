@@ -150,6 +150,20 @@ export class TransferFilePool {
   }
 
   /**
+   * Abort the download of a file.
+   *
+   * @param fileId Id of the file.
+   */
+  public abortFileDownload(fileId: string): void {
+    if (!this.fileExists(fileId)) {
+      throw new Error(`file '#${fileId}' does not exist`);
+    }
+
+    const file = this.transferFiles[fileId];
+    file.setDownloading(false);
+  }
+
+  /**
    * Add a file directly to the pool.
    *
    * @param blob Blob to store to the pool.
