@@ -27,12 +27,12 @@
   "homepage": "https://github.com/ludovicm67/lib-filetransfer#readme",
   "devDependencies": {
     "@types/jasmine": "^4.0.3",
-    "@types/node": "^18.0.0",
+    "@types/node": "^18.6.5",
     "@types/uuid": "^8.3.4",
-    "jasmine": "^4.2.0",
-    "typedoc": "^0.22.17",
-    "typedoc-plugin-mermaid": "^1.8.0",
-    "typescript": "^4.7.3"
+    "jasmine": "^4.3.0",
+    "typedoc": "^0.23.10",
+    "typedoc-plugin-mermaid": "^1.9.0",
+    "typescript": "^4.7.4"
   },
   "dependencies": {
     "base64-arraybuffer": "^1.0.2",
