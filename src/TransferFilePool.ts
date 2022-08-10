@@ -263,4 +263,17 @@ export class TransferFilePool {
 
     return this.transferFiles[fileId].getBlob();
   }
+
+  /**
+   * Remove all the data of the file.
+   *
+   * @param fileId Id of the file.
+   */
+  public clearFile(fileId: string): void {
+    if (!this.fileExists(fileId)) {
+      throw new Error(`file '#${fileId}' does not exist`);
+    }
+
+    this.transferFiles[fileId].clear();
+  }
 }

@@ -432,4 +432,17 @@ export class TransferFile {
       );
     }
   }
+
+  /**
+   * Clear the content of the file.
+   * The user will need to download it again.
+   */
+  public clear(): void {
+    this.setComplete(false);
+    this.setDownloading(false);
+    this.setError(undefined, false);
+    this.data = undefined;
+    this.buffer = undefined;
+    this.parts = {};
+  }
 }
