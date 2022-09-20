@@ -46,5 +46,15 @@
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
-  }
+  },
+  "keywords": [
+    "file-transfer",
+    "download",
+    "upload",
+    "p2p",
+    "webrtc",
+    "data",
+    "library",
+    "filetransfer"
+  ]
 }
