@@ -86,7 +86,7 @@ describe("testing the TransferFilePool class", () => {
     /**
      * RECEIVER
      */
-    let sendCb = (_fileId, _offset, _limit, _data) => {};
+    let sendCb = (_fileId, _offset, _limit, _data) => { };
     const receiverPool = new TransferFilePool({
       maxBufferSize: 5,
       parallelCalls: 100,
@@ -108,7 +108,7 @@ describe("testing the TransferFilePool class", () => {
     };
 
     // imagine the sender sent the fileMetadata on a dedicated channel…
-    const receivedFileMetadata = {...fileMetadata};
+    const receivedFileMetadata = { ...fileMetadata };
     const fileId = receivedFileMetadata.id;
     await expectAsync(receiverPool.downloadFile(fileId)).toBeRejectedWithError(`file '#${fileId}' does not exist`);
   });
@@ -126,7 +126,7 @@ describe("testing the TransferFilePool class", () => {
     /**
      * RECEIVER
      */
-    let sendCb = (_fileId, _offset, _limit, _data) => {};
+    let sendCb = (_fileId, _offset, _limit, _data) => { };
     const receiverPool = new TransferFilePool({
       maxBufferSize: 5,
       parallelCalls: 100,
@@ -148,7 +148,7 @@ describe("testing the TransferFilePool class", () => {
     };
 
     // imagine the sender sent the fileMetadata on a dedicated channel…
-    const receivedFileMetadata = {...fileMetadata};
+    const receivedFileMetadata = { ...fileMetadata };
 
     // so we store the file metadata in the pool
     receiverPool.storeFileMetadata(receivedFileMetadata);
@@ -177,7 +177,7 @@ describe("testing the TransferFilePool class", () => {
     /**
      * RECEIVER
      */
-    let sendCb = (_fileId, _offset, _limit, _data) => {};
+    let sendCb = (_fileId, _offset, _limit, _data) => { };
     const receiverPool = new TransferFilePool({
       maxBufferSize: 5,
       parallelCalls: 100,
@@ -201,7 +201,7 @@ describe("testing the TransferFilePool class", () => {
     };
 
     // imagine the sender sent the fileMetadata on a dedicated channel…
-    const receivedFileMetadata = {...fileMetadata};
+    const receivedFileMetadata = { ...fileMetadata };
 
     // so we store the file metadata in the pool
     receiverPool.storeFileMetadata(receivedFileMetadata);
@@ -229,7 +229,7 @@ describe("testing the TransferFilePool class", () => {
     /**
      * RECEIVER
      */
-    let sendCb = (_fileId, _offset, _limit, _data) => {};
+    let sendCb = (_fileId, _offset, _limit, _data) => { };
     const receiverPool = new TransferFilePool({
       maxBufferSize: 5,
       parallelCalls: 100,
@@ -252,7 +252,7 @@ describe("testing the TransferFilePool class", () => {
     };
 
     // imagine the sender sent the fileMetadata on a dedicated channel…
-    const receivedFileMetadata = {...fileMetadata};
+    const receivedFileMetadata = { ...fileMetadata };
 
     // so we store the file metadata in the pool
     receiverPool.storeFileMetadata(receivedFileMetadata);
@@ -279,7 +279,7 @@ describe("testing the TransferFilePool class", () => {
     /**
      * RECEIVER
      */
-    let sendCb = (_fileId, _offset, _limit, _data) => {};
+    let sendCb = (_fileId, _offset, _limit, _data) => { };
     const receiverPool = new TransferFilePool({
       maxBufferSize: 5,
       parallelCalls: 100,
@@ -302,7 +302,7 @@ describe("testing the TransferFilePool class", () => {
     };
 
     // imagine the sender sent the fileMetadata on a dedicated channel…
-    const receivedFileMetadata = {...fileMetadata};
+    const receivedFileMetadata = { ...fileMetadata };
 
     // so we store the file metadata in the pool
     receiverPool.storeFileMetadata(receivedFileMetadata);
@@ -334,7 +334,7 @@ describe("testing the TransferFilePool class", () => {
     /**
      * RECEIVER
      */
-    let sendCb = (_fileId, _offset, _limit, _data) => {};
+    let sendCb = (_fileId, _offset, _limit, _data) => { };
     const receiverPool = new TransferFilePool({
       maxBufferSize: 5,
       parallelCalls: 100,
@@ -357,7 +357,7 @@ describe("testing the TransferFilePool class", () => {
     };
 
     // imagine the sender sent the fileMetadata on a dedicated channel…
-    const receivedFileMetadata = {...fileMetadata};
+    const receivedFileMetadata = { ...fileMetadata };
 
     // so we store the file metadata in the pool
     receiverPool.storeFileMetadata(receivedFileMetadata);
@@ -387,7 +387,7 @@ describe("testing the TransferFilePool class", () => {
     /**
      * RECEIVER
      */
-    let sendCb = (_fileId, _offset, _limit, _data) => {};
+    let sendCb = (_fileId, _offset, _limit, _data) => { };
     const receiverPool = new TransferFilePool({
       maxBufferSize: 5,
       parallelCalls: 100,
@@ -410,7 +410,7 @@ describe("testing the TransferFilePool class", () => {
     };
 
     // imagine the sender sent the fileMetadata on a dedicated channel…
-    const receivedFileMetadata = {...fileMetadata};
+    const receivedFileMetadata = { ...fileMetadata };
 
     // so we store the file metadata in the pool
     receiverPool.storeFileMetadata(receivedFileMetadata);
@@ -432,7 +432,7 @@ describe("testing the TransferFilePool class", () => {
     /**
      * RECEIVER
      */
-    let sendCb = (_fileId, _offset, _limit, _data) => {};
+    let sendCb = (_fileId, _offset, _limit, _data) => { };
     const receiverPool = new TransferFilePool({
       maxBufferSize: 5,
       parallelCalls: 100,
@@ -455,7 +455,7 @@ describe("testing the TransferFilePool class", () => {
     };
 
     // imagine the sender sent the fileMetadata on a dedicated channel…
-    const receivedFileMetadata = {...fileMetadata};
+    const receivedFileMetadata = { ...fileMetadata };
 
     // so we store the file metadata in the pool
     receiverPool.storeFileMetadata(receivedFileMetadata);
@@ -479,7 +479,7 @@ describe("testing the TransferFilePool class", () => {
     /**
      * RECEIVER
      */
-    let sendCb = (_fileId, _offset, _limit, _data) => {};
+    let sendCb = (_fileId, _offset, _limit, _data) => { };
     const receiverPool = new TransferFilePool({
       maxBufferSize: 5,
       parallelCalls: 100,
@@ -501,7 +501,7 @@ describe("testing the TransferFilePool class", () => {
     };
 
     // imagine the sender sent the fileMetadata on a dedicated channel…
-    const receivedFileMetadata = {...fileMetadata};
+    const receivedFileMetadata = { ...fileMetadata };
 
     // so we store the file metadata in the pool
     receiverPool.storeFileMetadata(receivedFileMetadata);
