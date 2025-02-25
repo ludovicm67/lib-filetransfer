@@ -1,5 +1,7 @@
 # File transfer library
 
+[![NPM](https://badge.fury.io/js/@ludovicm67%2Flib-filetransfer.svg)](https://npm.im/@ludovicm67/lib-filetransfer)
+
 This library is helpful if you want to send huge files to other users.
 
 Technical documentation can be found here: https://lib-filetransfer.ludovicm67.fr/
