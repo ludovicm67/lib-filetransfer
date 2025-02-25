@@ -1,4 +1,3 @@
-import Blob from "cross-blob";
 import { TransferFilePool } from "../../lib/index.js";
 
 describe("testing the TransferFilePool class", () => {

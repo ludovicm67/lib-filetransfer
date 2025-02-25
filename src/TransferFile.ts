@@ -1,4 +1,3 @@
-import Blob from "cross-blob";
 import pLimit from "p-limit";
 import {
   AskFilePartCallback,

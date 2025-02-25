@@ -1,4 +1,3 @@
-import Blob from "cross-blob";
 import { v4 as uuidv4 } from "uuid";
 import { TransferFile, TransferFileBlob } from "./TransferFile.js";
 
