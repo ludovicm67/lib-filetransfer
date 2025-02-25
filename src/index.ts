@@ -1,4 +1,3 @@
-export { default as Blob } from "cross-blob";
 export {
   TransferFile,
   TransferFileBlob,
