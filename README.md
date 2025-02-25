@@ -189,3 +189,7 @@ import { stringToArrayBuffer } from "@ludovicm67/lib-filetransfer";
 // `str` variable is a string
 const arrayBuffer = stringToArrayBuffer(str);
 ```
+
+## License
+
+This library is licensed under the [MIT License](./LICENSE).
