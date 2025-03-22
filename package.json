@@ -30,7 +30,7 @@
     "@changesets/cli": "^2.28.1",
     "@types/node": "^22.0.0",
     "@types/uuid": "^10.0.0",
-    "typedoc": "^0.27.2",
+    "typedoc": "^0.28.0",
     "typedoc-plugin-mermaid": "^1.10.0",
     "typescript": "^5.3.2"
   },
