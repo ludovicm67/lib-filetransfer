@@ -25,7 +25,7 @@ jobs:
         run: npx typedoc src/index.ts --out docs --plugin typedoc-plugin-mermaid --cname lib-filetransfer.ludovicm67.fr
 
       - name: Deploy to GitHub Pages
-        uses: JamesIves/github-pages-deploy-action@v4.7.3
+        uses: JamesIves/github-pages-deploy-action@v4.7.4
         with:
           branch: gh-pages # The branch the action should deploy to.
           folder: docs # The folder the action should deploy.
