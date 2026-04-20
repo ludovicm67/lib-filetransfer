@@ -32,7 +32,7 @@
     "@types/uuid": "^11.0.0",
     "typedoc": "^0.28.0",
     "typedoc-plugin-mermaid": "^1.10.0",
-    "typescript": "^5.3.2"
+    "typescript": "^6.0.3"
   },
   "dependencies": {
     "base64-arraybuffer": "^1.0.2",
