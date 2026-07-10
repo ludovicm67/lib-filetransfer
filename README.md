@@ -4,7 +4,9 @@
 
 This library is helpful if you want to send huge files to other users.
 
-Technical documentation can be found here: https://lib-filetransfer.ludovicm67.fr/
+Homepage &amp; live interactive demo: https://lib-filetransfer.ludovicm67.fr/
+
+Technical (API) documentation can be found here: https://lib-filetransfer.ludovicm67.fr/api/
 
 Source code is available on GitHub at: https://github.com/ludovicm67/lib-filetransfer
 
@@ -44,29 +46,21 @@ Here is an illustrated flow between our two users:
 
 ```mermaid
 sequenceDiagram
-  participant Sender
-  participant Receiver
-  Sender->>Sender: Store file in the pool, get associated metadata
-  Sender->>Receiver: Send metadata
-  Receiver->>Receiver: Store metadata in the pool
-  Receiver->>Receiver: Trigger download of a file
-  Receiver->>Sender: Can I have part of file with id=ID from offset X1 and limit Y?
-  Receiver->>Sender: Can I have part of file with id=ID from offset X2 and limit Y?
-  Receiver->>Sender: Can I have part of file with id=ID from offset X3 and limit Y?
-  Sender->>Receiver: Here is part of file with id=ID from offset X1 and limit Y
-  Sender->>Receiver: Here is part of file with id=ID from offset X3 and limit Y
-  Receiver->>Receiver: Did not received part of file with id=ID from offset X2 within the specified amount of time, ask it again! (retry mechanism)
-  Receiver->>Sender: Can I have part of file with id=ID from offset X2 and limit Y?
-  Sender->>Receiver: Here is part of file with id=ID from offset X2 and limit Y
-  Receiver->>Sender: Can I have part of file with id=ID from offset X4 and limit Y?
-  Receiver->>Sender: Can I have part of file with id=ID from offset X5 and limit Y?
-  Receiver->>Sender: Can I have part of file with id=ID from offset X6 and limit Y?
-  Sender->>Receiver: Here is part of file with id=ID from offset X6 and limit Y
-  Sender->>Receiver: Here is part of file with id=ID from offset X4 and limit Y
-  Sender->>Receiver: Here is part of file with id=ID from offset X5 and limit Y
-  Sender-->Receiver: …continue like this until all parts are fetched…
-  Receiver->>Receiver: All parts are here, sort them, generate the file, store it as a Blob
-  Receiver->>Receiver: Access the file
+  participant S as Sender
+  participant R as Receiver
+  S->>S: addFile() → metadata
+  S->>R: send metadata (your channel)
+  R->>R: storeFileMetadata()
+  Note over R,S: downloadFile() asks for parts,<br/>several in parallel
+  loop for each part
+    R->>S: ask part (offset, limit)
+    S->>R: send part data
+  end
+  Note over R: a part timed out?<br/>re-ask it (retry mechanism)
+  R->>S: ask missing part again
+  S->>R: send part data
+  R->>R: all parts received → sort and build Blob
+  R->>R: getFile()
 ```
 
 To summarize, you will need to take care of having a communication channel between users, and the library is doing the rest.

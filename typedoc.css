@@ -1,0 +1,17 @@
+/* Extra styles injected into the generated TypeDoc site (--customCss).
+   Mainly to make the Mermaid diagram from the README render nicely. */
+
+.mermaid-block {
+  margin: 1.75rem 0;
+  padding: 1rem;
+  border: 1px solid var(--color-accent);
+  border-radius: 10px;
+  background: var(--color-background-secondary);
+  overflow-x: auto; /* wide diagrams scroll instead of being clipped */
+}
+
+/* Centre the rendered diagram within its block. */
+.mermaid-block > .mermaid > svg {
+  display: block;
+  margin: 0 auto;
+}
