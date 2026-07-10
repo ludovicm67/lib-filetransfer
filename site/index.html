@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>lib-filetransfer — send huge files over any channel</title>
+    <meta
+      name="description"
+      content="A tiny, transport-agnostic TypeScript library that slices files into chunks, streams them over any channel (WebRTC, WebSockets, anything) with retries and parallelism, and reassembles them on the other side."
+    />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="./assets/styles.css" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="lib-filetransfer" />
+    <meta
+      property="og:description"
+      content="Send huge files over any channel. Chunked, retried, parallel — you own the wire, the library does the rest."
+    />
+    <meta property="og:url" content="https://lib-filetransfer.ludovicm67.fr/" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <!-- ───────────────────────── Header ───────────────────────── -->
+    <header class="site-header">
+      <div class="wrap header-inner">
+        <a class="brand" href="#top" aria-label="lib-filetransfer home">
+          <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+            <defs>
+              <linearGradient id="g-brand" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#38bdf8" />
+                <stop offset="0.5" stop-color="#818cf8" />
+                <stop offset="1" stop-color="#c084fc" />
+              </linearGradient>
+            </defs>
+            <rect x="2" y="7" width="10" height="10" rx="2.5" fill="url(#g-brand)" />
+            <rect x="20" y="15" width="10" height="10" rx="2.5" fill="url(#g-brand)" opacity="0.55" />
+            <path d="M12 12h6a3 3 0 0 1 3 3v3" fill="none" stroke="url(#g-brand)" stroke-width="2" stroke-linecap="round" />
+          </svg>
+          <span>lib-filetransfer</span>
+        </a>
+        <nav class="header-nav" aria-label="Primary">
+          <a href="#features">Features</a>
+          <a href="#demo">Demo</a>
+          <a href="#quickstart">Quick start</a>
+          <a href="./api/">API docs</a>
+          <a class="header-gh" href="https://github.com/ludovicm67/lib-filetransfer" aria-label="GitHub repository">
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="currentColor">
+              <path d="M12 .5A11.5 11.5 0 0 0 .5 12a11.5 11.5 0 0 0 7.86 10.92c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.53-1.34-1.29-1.7-1.29-1.7-1.05-.72.08-.7.08-.7 1.17.08 1.78 1.2 1.78 1.2 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.56-.29-5.26-1.28-5.26-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.8 0c2.2-1.5 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.43-2.7 5.4-5.28 5.69.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12 11.5 11.5 0 0 0 12 .5Z" />
+            </svg>
+          </a>
+          <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Toggle color theme">
+            <svg class="icon-sun" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M12 17a5 5 0 1 1 0-10 5 5 0 0 1 0 10Zm0-13a1 1 0 0 1 1 1v1a1 1 0 1 1-2 0V5a1 1 0 0 1 1-1Zm0 15a1 1 0 0 1 1 1v1a1 1 0 1 1-2 0v-1a1 1 0 0 1 1-1ZM4 11a1 1 0 1 1 0 2H3a1 1 0 1 1 0-2h1Zm17 0a1 1 0 1 1 0 2h-1a1 1 0 1 1 0-2h1ZM5.6 5.6a1 1 0 0 1 1.4 0l.7.7a1 1 0 0 1-1.4 1.4l-.7-.7a1 1 0 0 1 0-1.4Zm11 11a1 1 0 0 1 1.4 0l.7.7a1 1 0 0 1-1.4 1.4l-.7-.7a1 1 0 0 1 0-1.4Zm1.4-11a1 1 0 0 1 0 1.4l-.7.7a1 1 0 1 1-1.4-1.4l.7-.7a1 1 0 0 1 1.4 0Zm-11 11a1 1 0 0 1 0 1.4l-.7.7a1 1 0 0 1-1.4-1.4l.7-.7a1 1 0 0 1 1.4 0Z"/></svg>
+            <svg class="icon-moon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+          </button>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main">
+      <span id="top"></span>
+
+      <!-- ───────────────────────── Hero ───────────────────────── -->
+      <section class="hero">
+        <div class="hero-glow" aria-hidden="true"></div>
+        <div class="wrap hero-inner">
+          <div class="hero-copy">
+            <p class="eyebrow">TypeScript · MIT · zero-config</p>
+            <h1>Send <span class="grad">huge files</span><br />over any channel.</h1>
+            <p class="lede">
+              <strong>lib-filetransfer</strong> slices a file into chunks, streams them across
+              the transport you already have — WebRTC, WebSockets, anything — and reassembles
+              them on the other side. Retries, parallelism and range requests included. You own
+              the wire; the library does the rest.
+            </p>
+
+            <div class="install" role="group" aria-label="Install command">
+              <code id="install-cmd">npm i @ludovicm67/lib-filetransfer</code>
+              <button class="copy-btn" data-copy="npm i @ludovicm67/lib-filetransfer" aria-label="Copy install command">
+                <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M9 2a2 2 0 0 0-2 2v1H6a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2v-1h1a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H9Zm0 2h9v11h-1V7a2 2 0 0 0-2-2H9V4ZM6 7h9v13H6V7Z"/></svg>
+                <span class="copy-label">Copy</span>
+              </button>
+            </div>
+
+            <div class="hero-cta">
+              <a class="btn btn-primary" href="#demo">Try the live demo</a>
+              <a class="btn btn-ghost" href="#quickstart">Quick start</a>
+              <a class="btn btn-ghost" href="./api/">API reference →</a>
+            </div>
+
+            <ul class="hero-badges" aria-label="Highlights">
+              <li>🧩 Transport-agnostic</li>
+              <li>♻️ Auto-retry</li>
+              <li>⚡ Parallel</li>
+              <li>🪶 ~3&nbsp;dependencies</li>
+            </ul>
+          </div>
+
+          <!-- Decorative always-on illustration -->
+          <div class="hero-art" aria-hidden="true">
+            <div class="node node-a"><span>Sender</span></div>
+            <div class="node node-b"><span>Receiver</span></div>
+            <div class="wire"></div>
+            <div class="packets">
+              <i class="ok" style="--d:0s; --y:-22px"></i>
+              <i class="ok" style="--d:.5s; --y:16px"></i>
+              <i class="ok" style="--d:1s; --y:-4px"></i>
+              <i class="lost" style="--d:1.6s; --y:24px"></i>
+              <i class="retry" style="--d:3s; --y:24px"></i>
+              <i class="ok" style="--d:2.4s; --y:-16px"></i>
+              <i class="ok" style="--d:3.6s; --y:4px"></i>
+            </div>
+            <div class="art-caption">lost chunks are retried automatically</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ───────────────────────── Features ───────────────────────── -->
+      <section id="features" class="section">
+        <div class="wrap">
+          <p class="kicker">Why it exists</p>
+          <h2 class="section-title">Everything a file transfer needs — nothing it doesn't.</h2>
+          <p class="section-sub">
+            The hard parts of moving large files are chunking, ordering, loss recovery and
+            back-pressure. This library owns those, and leaves the transport entirely to you.
+          </p>
+
+          <div class="feature-grid">
+            <article class="feature">
+              <div class="feature-icon">🔌</div>
+              <h3>Transport-agnostic</h3>
+              <p>The library never touches the network. Hand it any send/receive channel — a WebRTC DataChannel, a WebSocket, even a carrier pigeon — and it orchestrates the rest.</p>
+            </article>
+            <article class="feature">
+              <div class="feature-icon">🧩</div>
+              <h3>Chunked streaming</h3>
+              <p>Files are split into configurable parts, so you can move gigabytes without holding the whole thing in memory at once.</p>
+            </article>
+            <article class="feature">
+              <div class="feature-icon">♻️</div>
+              <h3>Automatic retries</h3>
+              <p>Lost a part? It's re-requested until it lands, with a configurable timeout and retry budget. Flaky links just work.</p>
+            </article>
+            <article class="feature">
+              <div class="feature-icon">⚡</div>
+              <h3>Parallel transfers</h3>
+              <p>Fetch many parts at once behind a built-in concurrency limiter for maximum throughput without flooding the channel.</p>
+            </article>
+            <article class="feature">
+              <div class="feature-icon">🎯</div>
+              <h3>Range requests</h3>
+              <p>Ask for exactly the bytes you want with <code>offset</code> + <code>limit</code>. Resume, stream, or prioritize however you like.</p>
+            </article>
+            <article class="feature">
+              <div class="feature-icon">🛡️</div>
+              <h3>Type-safe by design</h3>
+              <p>Written in TypeScript with complete type definitions, so you get autocompletion and compile-time checks for free.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- ───────────────────────── Live demo ───────────────────────── -->
+      <section id="demo" class="section section-demo">
+        <div class="wrap">
+          <p class="kicker">Live &amp; real</p>
+          <h2 class="section-title">See it move.</h2>
+          <p class="section-sub">
+            This isn't a video. Everything below runs the <strong>actual published library</strong>
+            in your browser. Two independent pools — a sender and a receiver — talk over a simulated
+            channel where <em>you</em> control the latency and packet loss. Crank the loss up and
+            watch the retry mechanism recover every byte.
+          </p>
+
+          <div class="demo" id="demo-app">
+            <!-- Controls -->
+            <div class="demo-controls">
+              <div class="control">
+                <label for="ctl-file">File</label>
+                <div class="file-row">
+                  <button class="btn btn-small" id="btn-sample" type="button">Generate sample image</button>
+                  <label class="btn btn-small btn-file">
+                    <input type="file" id="ctl-file" hidden />
+                    Choose file…
+                  </label>
+                </div>
+                <p class="file-name" id="file-name">No file selected yet</p>
+              </div>
+
+              <div class="sliders">
+                <div class="control">
+                  <label for="ctl-chunk">Chunk size <output id="out-chunk">1024 B</output></label>
+                  <input type="range" id="ctl-chunk" min="256" max="4096" step="256" value="1024" />
+                </div>
+                <div class="control">
+                  <label for="ctl-parallel">Parallel requests <output id="out-parallel">4</output></label>
+                  <input type="range" id="ctl-parallel" min="1" max="8" step="1" value="4" />
+                </div>
+                <div class="control">
+                  <label for="ctl-loss">Packet loss <output id="out-loss">15%</output></label>
+                  <input type="range" id="ctl-loss" min="0" max="50" step="5" value="15" />
+                </div>
+                <div class="control">
+                  <label for="ctl-latency">Latency <output id="out-latency">120 ms</output></label>
+                  <input type="range" id="ctl-latency" min="20" max="400" step="20" value="120" />
+                </div>
+              </div>
+
+              <div class="demo-actions">
+                <button class="btn btn-primary" id="btn-start" type="button" disabled>Start transfer</button>
+                <button class="btn btn-ghost" id="btn-reset" type="button">Reset</button>
+              </div>
+            </div>
+
+            <!-- Stage -->
+            <div class="demo-stage">
+              <div class="stage-col">
+                <div class="stage-head"><span class="dot dot-a"></span> Sender</div>
+                <div class="card sender-card" id="sender-card">
+                  <div class="card-empty">Pick or generate a file to begin.</div>
+                </div>
+              </div>
+
+              <div class="stage-channel">
+                <div class="stage-head center">Channel</div>
+                <div class="channel" id="channel">
+                  <div class="channel-line"></div>
+                  <span class="chan-end s" title="sender"></span>
+                  <span class="chan-end r" title="receiver"></span>
+                </div>
+                <div class="channel-caption" id="channel-caption">idle</div>
+                <div class="chan-legend" aria-hidden="true">
+                  <span><i class="lg data"></i>data</span>
+                  <span><i class="lg retry"></i>retry</span>
+                  <span><i class="lg lost"></i>lost</span>
+                </div>
+              </div>
+
+              <div class="stage-col">
+                <div class="stage-head"><span class="dot dot-b"></span> Receiver</div>
+                <div class="card receiver-card">
+                  <div class="chunk-grid" id="chunk-grid" aria-label="Received chunks"></div>
+                  <div class="progress"><div class="progress-bar" id="progress-bar"></div></div>
+                  <div class="result" id="result" hidden></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Stats -->
+            <dl class="demo-stats" id="demo-stats">
+              <div><dt>Chunks</dt><dd id="stat-chunks">0 / 0</dd></div>
+              <div><dt>Requests sent</dt><dd id="stat-requests">0</dd></div>
+              <div><dt>Dropped</dt><dd id="stat-dropped">0</dd></div>
+              <div><dt>Retries</dt><dd id="stat-retries">0</dd></div>
+              <div><dt>Elapsed</dt><dd id="stat-elapsed">0 ms</dd></div>
+              <div><dt>Status</dt><dd id="stat-status">Ready</dd></div>
+            </dl>
+
+            <p class="demo-note" id="demo-note"></p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ───────────────────────── How it works ───────────────────────── -->
+      <section id="how" class="section">
+        <div class="wrap">
+          <p class="kicker">The mental model</p>
+          <h2 class="section-title">Four moves, two peers.</h2>
+          <div class="steps">
+            <div class="step">
+              <span class="step-num">1</span>
+              <h3>Add</h3>
+              <p>The sender drops a file into its pool and gets back small <em>metadata</em> — id, name, size, chunk count.</p>
+            </div>
+            <div class="step">
+              <span class="step-num">2</span>
+              <h3>Announce</h3>
+              <p>That metadata travels over your channel. The receiver stores it, now aware the file exists.</p>
+            </div>
+            <div class="step">
+              <span class="step-num">3</span>
+              <h3>Request</h3>
+              <p>The receiver asks for parts by <code>offset</code> + <code>limit</code>. Your callback ferries each request to the sender.</p>
+            </div>
+            <div class="step">
+              <span class="step-num">4</span>
+              <h3>Reassemble</h3>
+              <p>Parts stream back, get ordered and retried as needed, then become a <code>Blob</code> ready to open or save.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ───────────────────────── Quick start ───────────────────────── -->
+      <section id="quickstart" class="section section-code">
+        <div class="wrap">
+          <p class="kicker">Quick start</p>
+          <h2 class="section-title">From install to transfer in a few lines.</h2>
+          <p class="section-sub">
+            Both peers create a pool. The sender adds the file; the receiver stores the metadata,
+            then triggers the download. The two snippets below are the whole contract.
+          </p>
+
+          <div class="code-tabs" id="code-tabs">
+            <div class="tab-bar" role="tablist">
+              <button class="tab active" role="tab" data-tab="sender">sender.ts</button>
+              <button class="tab" role="tab" data-tab="receiver">receiver.ts</button>
+              <button class="tab" role="tab" data-tab="utils">utils.ts</button>
+            </div>
+
+            <div class="tab-panel active" data-panel="sender">
+              <div class="code-block">
+                <div class="code-head"><span>sender.ts</span><button class="copy-btn ghost" data-copy-target="code-sender" aria-label="Copy code"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path fill="currentColor" d="M9 2a2 2 0 0 0-2 2v1H6a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2v-1h1a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H9Zm0 2h9v11h-1V7a2 2 0 0 0-2-2H9V4ZM6 7h9v13H6V7Z"/></svg><span>Copy</span></button></div>
+<pre class="code" id="code-sender"><code>import { TransferFilePool } from "@ludovicm67/lib-filetransfer";
+
+const pool = new TransferFilePool({ maxBufferSize: 16_000 });
+
+// 1. Add a File or Blob — get back metadata to announce.
+const metadata = await pool.addFile(file, file.name);
+sendToPeer({ type: "meta", metadata });
+
+// 2. When the receiver asks for a part, read and reply.
+onPeerMessage(({ fileId, offset, limit }) => {
+  const data = pool.readFilePart(fileId, offset, limit);
+  sendToPeer({ type: "part", fileId, offset, limit, data });
+});</code></pre>
+              </div>
+            </div>
+
+            <div class="tab-panel" data-panel="receiver">
+              <div class="code-block">
+                <div class="code-head"><span>receiver.ts</span><button class="copy-btn ghost" data-copy-target="code-receiver" aria-label="Copy code"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path fill="currentColor" d="M9 2a2 2 0 0 0-2 2v1H6a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2v-1h1a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H9Zm0 2h9v11h-1V7a2 2 0 0 0-2-2H9V4ZM6 7h9v13H6V7Z"/></svg><span>Copy</span></button></div>
+<pre class="code" id="code-receiver"><code>import { TransferFilePool } from "@ludovicm67/lib-filetransfer";
+
+const pool = new TransferFilePool({ maxBufferSize: 16_000 });
+
+// 1. Store the announced metadata.
+const fileId = pool.storeFileMetadata(metadata);
+
+// 2. Feed incoming parts back into the pool.
+onPeerMessage(({ fileId, offset, limit, data }) => {
+  pool.receiveFilePart(fileId, offset, limit, data);
+});
+
+// 3. Trigger the download — parts are requested for you.
+await pool.downloadFile(fileId, (fileId, offset, limit) => {
+  sendToPeer({ type: "ask", fileId, offset, limit });
+});
+
+const { data } = pool.getFile(fileId);   // a ready-to-use Blob
+window.open(URL.createObjectURL(data), "_blank");</code></pre>
+              </div>
+            </div>
+
+            <div class="tab-panel" data-panel="utils">
+              <div class="code-block">
+                <div class="code-head"><span>utils.ts</span><button class="copy-btn ghost" data-copy-target="code-utils" aria-label="Copy code"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path fill="currentColor" d="M9 2a2 2 0 0 0-2 2v1H6a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2v-1h1a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H9Zm0 2h9v11h-1V7a2 2 0 0 0-2-2H9V4ZM6 7h9v13H6V7Z"/></svg><span>Copy</span></button></div>
+<pre class="code" id="code-utils"><code>// Some channels only carry strings. Convert both ways:
+import {
+  arrayBufferToString,
+  stringToArrayBuffer,
+} from "@ludovicm67/lib-filetransfer";
+
+// ArrayBuffer -> base64 string (safe over a text WebSocket)
+const wire = arrayBufferToString(data);
+
+// string -> ArrayBuffer on the other end
+const buffer = stringToArrayBuffer(wire);</code></pre>
+              </div>
+            </div>
+          </div>
+
+          <p class="section-foot">
+            Full method-by-method reference lives in the
+            <a href="./api/">generated API documentation →</a>
+          </p>
+        </div>
+      </section>
+
+      <!-- ───────────────────────── Final CTA ───────────────────────── -->
+      <section class="section section-cta">
+        <div class="wrap cta-inner">
+          <h2>Ready to move some bytes?</h2>
+          <p>Install it, wire your channel, and let the library handle the rest.</p>
+          <div class="install install-lg" role="group" aria-label="Install command">
+            <code>npm i @ludovicm67/lib-filetransfer</code>
+            <button class="copy-btn" data-copy="npm i @ludovicm67/lib-filetransfer" aria-label="Copy install command">
+              <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M9 2a2 2 0 0 0-2 2v1H6a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2v-1h1a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H9Zm0 2h9v11h-1V7a2 2 0 0 0-2-2H9V4ZM6 7h9v13H6V7Z"/></svg>
+              <span class="copy-label">Copy</span>
+            </button>
+          </div>
+          <div class="cta-links">
+            <a class="btn btn-primary" href="./api/">Read the docs</a>
+            <a class="btn btn-ghost" href="https://github.com/ludovicm67/lib-filetransfer">Star on GitHub</a>
+            <a class="btn btn-ghost" href="https://www.npmjs.com/package/@ludovicm67/lib-filetransfer">View on npm</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ───────────────────────── Footer ───────────────────────── -->
+    <footer class="site-footer">
+      <div class="wrap footer-inner">
+        <div>
+          <div class="brand small">
+            <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+              <rect x="2" y="7" width="10" height="10" rx="2.5" fill="url(#g-brand)" />
+              <rect x="20" y="15" width="10" height="10" rx="2.5" fill="url(#g-brand)" opacity="0.55" />
+            </svg>
+            <span>lib-filetransfer</span>
+          </div>
+          <p class="footer-tag">Chunked, retried, parallel file transfer for any channel.</p>
+        </div>
+        <nav class="footer-links" aria-label="Footer">
+          <a href="./api/">API documentation</a>
+          <a href="https://github.com/ludovicm67/lib-filetransfer">GitHub</a>
+          <a href="https://www.npmjs.com/package/@ludovicm67/lib-filetransfer">npm</a>
+          <a href="https://github.com/ludovicm67/lib-filetransfer/issues">Report an issue</a>
+        </nav>
+      </div>
+      <div class="wrap footer-bottom">
+        <span>MIT License</span>
+        <span>Built by <a href="https://ludovic-muller.fr/">Ludovic Muller</a></span>
+      </div>
+    </footer>
+
+    <script type="module" src="./assets/app.js"></script>
+  </body>
+</html>

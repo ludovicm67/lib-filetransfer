@@ -4,7 +4,9 @@
 
 This library is helpful if you want to send huge files to other users.
 
-Technical documentation can be found here: https://lib-filetransfer.ludovicm67.fr/
+Homepage &amp; live interactive demo: https://lib-filetransfer.ludovicm67.fr/
+
+Technical (API) documentation can be found here: https://lib-filetransfer.ludovicm67.fr/api/
 
 Source code is available on GitHub at: https://github.com/ludovicm67/lib-filetransfer
 

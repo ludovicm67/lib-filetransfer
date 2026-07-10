@@ -21,8 +21,8 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Generate documentation
-        run: npx typedoc src/index.ts --out docs --plugin typedoc-plugin-mermaid --cname lib-filetransfer.ludovicm67.fr
+      - name: Build site (landing page + demo bundle + API reference)
+        run: npm run docs
 
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4.8.0

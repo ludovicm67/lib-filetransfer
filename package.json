@@ -9,7 +9,10 @@
     "build": "tsc",
     "prepack": "npm run build",
     "start": "npm run build && node --no-warnings lib/index.js",
-    "docs": "typedoc src/index.ts --out docs --plugin typedoc-plugin-mermaid",
+    "docs": "npm run docs:site && npm run docs:bundle && npm run docs:api",
+    "docs:site": "node scripts/build-docs.mjs",
+    "docs:bundle": "esbuild src/index.ts --bundle --format=esm --minify --outfile=docs/assets/lib-filetransfer.js",
+    "docs:api": "typedoc src/index.ts --out docs/api --plugin typedoc-plugin-mermaid",
     "test": "npm run build && node --test test/**/*.test.js",
     "release": "changeset publish"
   },
@@ -29,6 +32,7 @@
   "devDependencies": {
     "@changesets/cli": "^2.28.1",
     "@types/node": "^26.0.0",
+    "esbuild": "0.28.1",
     "typedoc": "^0.28.0",
     "typedoc-plugin-mermaid": "^1.10.0",
     "typescript": "^6.0.3"
