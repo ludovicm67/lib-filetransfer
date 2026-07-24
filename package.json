@@ -14,7 +14,7 @@
     "docs:bundle": "esbuild src/index.ts --bundle --format=esm --minify --outfile=docs/assets/lib-filetransfer.js",
     "docs:api": "typedoc && node scripts/postprocess-api.mjs",
     "docs:sitemap": "node scripts/build-sitemap.mjs",
-    "favicon": "magick site/favicon.svg -background none -define icon:auto-resize=48,32,16 site/favicon.ico",
+    "favicon": "magick -background none site/favicon.svg -define icon:auto-resize=48,32,16 site/favicon.ico",
     "docs:serve": "node scripts/serve-docs.mjs",
     "preview": "npm run docs && npm run docs:serve",
     "test": "npm run build && node --test test/**/*.test.js",
