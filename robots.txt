@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://lib-filetransfer.ludovicm67.fr/sitemap.xml
