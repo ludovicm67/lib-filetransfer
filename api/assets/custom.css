@@ -1,6 +1,142 @@
 /* Extra styles injected into the generated TypeDoc site (--customCss).
-   Mainly to make the Mermaid diagram from the README render nicely. */
+   Two jobs:
+     1. re-skin TypeDoc to match the lib-filetransfer landing page;
+     2. make the README Mermaid diagram render nicely.
+   custom.css is loaded after TypeDoc's own style.css, so these win. */
 
+/* ============================================================
+   1. Palette — match the landing page.
+   TypeDoc maps every --color-* to a --light-color-* / --dark-color-*
+   base token, switched by prefers-color-scheme and [data-theme].
+   Overriding the base tokens re-skins light, dark and OS modes at once.
+   ============================================================ */
+:root {
+  /* dark */
+  --dark-color-background: #0a0e17;
+  --dark-color-background-secondary: #0d1220;
+  --dark-color-background-active: #1b2233;
+  --dark-color-active-menu-item: #151b2b;
+  --dark-color-accent: #232c3d; /* borders / hover surfaces */
+  --dark-color-text: #e8eef7;
+  --dark-color-text-aside: #93a1b6;
+  --dark-color-link: #7aa2ff;
+  --dark-color-focus-outline: #7aa2ff;
+  /* type-kind accents: kept distinct, but drawn from the site palette */
+  --dark-color-ts-keyword: #c084fc;
+  --dark-color-ts-function: #818cf8;
+  --dark-color-ts-method: #38bdf8;
+  --dark-color-ts-class: #7dd3fc;
+  --dark-color-ts-interface: #34d399;
+  --dark-color-ts-property: #fbbf24;
+  --dark-color-ts-accessor: #38bdf8;
+  --dark-color-ts-variable: #7dd3fc;
+
+  /* light */
+  --light-color-background: #f7f9fc;
+  --light-color-background-secondary: #eef2f8;
+  --light-color-background-active: #e2e8f5;
+  --light-color-active-menu-item: #e8edf7;
+  --light-color-accent: #d7dbe4;
+  --light-color-text: #10151f;
+  --light-color-text-aside: #4a5769;
+  --light-color-link: #4f6bed;
+  --light-color-focus-outline: #4f6bed;
+}
+
+/* ============================================================
+   2. Typography — same font stacks as the landing page.
+   ============================================================ */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto,
+    Helvetica, Arial, sans-serif;
+}
+code,
+pre,
+kbd,
+.tsd-typography code,
+.tsd-signature,
+.tsd-signatures {
+  font-family: ui-monospace, "SF Mono", "JetBrains Mono", "Fira Code", Menlo,
+    Consolas, monospace;
+}
+
+/* ============================================================
+   3. Accents — echo the brand gradient, subtly.
+   ============================================================ */
+.tsd-page-toolbar {
+  border-bottom: 1px solid var(--color-accent);
+  backdrop-filter: saturate(160%) blur(8px);
+}
+/* thin gradient line under the top toolbar, like the site header */
+.tsd-page-toolbar::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: linear-gradient(100deg, #38bdf8, #818cf8 55%, #c084fc);
+}
+
+/* Header: brand mark + name, then the navigation links — like the site header. */
+.tsd-page-toolbar .title {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-weight: 700;
+}
+.tsd-page-toolbar .title:hover {
+  text-decoration: none;
+}
+.lft-mark {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+#tsd-toolbar-links {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  margin-left: auto;
+  margin-right: 22px;
+}
+#tsd-toolbar-links a {
+  color: var(--color-text-aside);
+  font-size: 0.9rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+#tsd-toolbar-links a:hover {
+  color: var(--color-text);
+  text-decoration: none;
+}
+/* Hide the site nav links on narrow screens (search + menu remain). */
+@media (max-width: 830px) {
+  #tsd-toolbar-links {
+    display: none;
+  }
+}
+
+/* softer, rounder surfaces to match the site */
+pre,
+.tsd-panel {
+  border-radius: 10px;
+}
+
+/* gradient underline accent on hovered links */
+.tsd-typography a:hover {
+  text-decoration-color: #818cf8;
+}
+
+/* active sidebar item gets a subtle accent bar */
+.tsd-navigation a.current,
+.tsd-navigation .tsd-nav-action.current {
+  box-shadow: inset 2px 0 0 0 var(--color-link);
+}
+
+/* ============================================================
+   4. Mermaid diagram (from the README).
+   ============================================================ */
 .mermaid-block {
   margin: 1.75rem 0;
   padding: 1rem;
