@@ -64,8 +64,13 @@ const server = createServer(async (req, res) => {
     });
     res.end(data);
   } catch {
+    // Mirror GitHub Pages: serve the custom 404.html for any missing path.
     res.writeHead(404, { "content-type": "text/html; charset=utf-8" });
-    res.end("<h1>404 — Not Found</h1><p><a href=\"/\">Back to the landing page</a></p>");
+    try {
+      res.end(await readFile(join(docsDir, "404.html")));
+    } catch {
+      res.end('<h1>404 — Not Found</h1><p><a href="/">Back to the landing page</a></p>');
+    }
   }
 });
 
