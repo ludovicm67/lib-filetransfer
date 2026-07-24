@@ -426,6 +426,7 @@ const buffer = stringToArrayBuffer(wire);</code></pre>
       </div>
     </footer>
 
-    <script type="module" src="./assets/app.js"></script>
+    <!-- data-cfasync="false" keeps Cloudflare Rocket Loader from breaking this ES module -->
+    <script type="module" src="./assets/app.js" data-cfasync="false"></script>
   </body>
 </html>
