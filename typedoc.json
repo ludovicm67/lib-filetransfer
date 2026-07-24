@@ -1,0 +1,15 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": ["src/index.ts"],
+  "out": "docs/api",
+  "plugin": ["typedoc-plugin-mermaid"],
+  "mermaidVersion": "11",
+  "customCss": "typedoc.css",
+  "navigationLinks": {
+    "Home": "https://lib-filetransfer.ludovicm67.fr/",
+    "Live demo": "https://lib-filetransfer.ludovicm67.fr/#demo",
+    "npm": "https://www.npmjs.com/package/@ludovicm67/lib-filetransfer",
+    "GitHub": "https://github.com/ludovicm67/lib-filetransfer"
+  },
+  "customFooterHtml": "Part of <a href=\"https://lib-filetransfer.ludovicm67.fr/\">lib-filetransfer</a> — MIT licensed, built by <a href=\"https://ludovic-muller.fr/\">Ludovic Muller</a>."
+}

@@ -12,7 +12,7 @@
     "docs": "npm run docs:site && npm run docs:bundle && npm run docs:api",
     "docs:site": "node scripts/build-docs.mjs",
     "docs:bundle": "esbuild src/index.ts --bundle --format=esm --minify --outfile=docs/assets/lib-filetransfer.js",
-    "docs:api": "typedoc src/index.ts --out docs/api --plugin typedoc-plugin-mermaid --mermaidVersion 11 --customCss typedoc.css && node scripts/fix-mermaid.mjs",
+    "docs:api": "typedoc && node scripts/postprocess-api.mjs",
     "docs:serve": "node scripts/serve-docs.mjs",
     "preview": "npm run docs && npm run docs:serve",
     "test": "npm run build && node --test test/**/*.test.js",

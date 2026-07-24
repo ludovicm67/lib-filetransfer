@@ -78,6 +78,45 @@ kbd,
   background: linear-gradient(100deg, #38bdf8, #818cf8 55%, #c084fc);
 }
 
+/* Header: brand mark + name, then the navigation links — like the site header. */
+.tsd-page-toolbar .title {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-weight: 700;
+}
+.tsd-page-toolbar .title:hover {
+  text-decoration: none;
+}
+.lft-mark {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+#tsd-toolbar-links {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  margin-left: auto;
+  margin-right: 22px;
+}
+#tsd-toolbar-links a {
+  color: var(--color-text-aside);
+  font-size: 0.9rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+#tsd-toolbar-links a:hover {
+  color: var(--color-text);
+  text-decoration: none;
+}
+/* Hide the site nav links on narrow screens (search + menu remain). */
+@media (max-width: 830px) {
+  #tsd-toolbar-links {
+    display: none;
+  }
+}
+
 /* softer, rounder surfaces to match the site */
 pre,
 .tsd-panel {
