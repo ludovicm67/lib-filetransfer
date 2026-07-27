@@ -2,54 +2,54 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://lib-filetransfer.ludovicm67.fr/</loc>
-    <lastmod>2026-07-24</lastmod>
+    <lastmod>2026-07-27</lastmod>
   </url>
   <url>
     <loc>https://lib-filetransfer.ludovicm67.fr/api/</loc>
-    <lastmod>2026-07-24</lastmod>
+    <lastmod>2026-07-27</lastmod>
   </url>
   <url>
     <loc>https://lib-filetransfer.ludovicm67.fr/api/classes/TransferFile.html</loc>
-    <lastmod>2026-07-24</lastmod>
+    <lastmod>2026-07-27</lastmod>
   </url>
   <url>
     <loc>https://lib-filetransfer.ludovicm67.fr/api/classes/TransferFilePool.html</loc>
-    <lastmod>2026-07-24</lastmod>
+    <lastmod>2026-07-27</lastmod>
   </url>
   <url>
     <loc>https://lib-filetransfer.ludovicm67.fr/api/functions/arrayBufferToString.html</loc>
-    <lastmod>2026-07-24</lastmod>
+    <lastmod>2026-07-27</lastmod>
   </url>
   <url>
     <loc>https://lib-filetransfer.ludovicm67.fr/api/functions/stringToArrayBuffer.html</loc>
-    <lastmod>2026-07-24</lastmod>
+    <lastmod>2026-07-27</lastmod>
   </url>
   <url>
     <loc>https://lib-filetransfer.ludovicm67.fr/api/hierarchy.html</loc>
-    <lastmod>2026-07-24</lastmod>
+    <lastmod>2026-07-27</lastmod>
   </url>
   <url>
     <loc>https://lib-filetransfer.ludovicm67.fr/api/modules.html</loc>
-    <lastmod>2026-07-24</lastmod>
+    <lastmod>2026-07-27</lastmod>
   </url>
   <url>
     <loc>https://lib-filetransfer.ludovicm67.fr/api/types/AskFilePartCallback.html</loc>
-    <lastmod>2026-07-24</lastmod>
+    <lastmod>2026-07-27</lastmod>
   </url>
   <url>
     <loc>https://lib-filetransfer.ludovicm67.fr/api/types/TransferFileBlob.html</loc>
-    <lastmod>2026-07-24</lastmod>
+    <lastmod>2026-07-27</lastmod>
   </url>
   <url>
     <loc>https://lib-filetransfer.ludovicm67.fr/api/types/TransferFileInfos.html</loc>
-    <lastmod>2026-07-24</lastmod>
+    <lastmod>2026-07-27</lastmod>
   </url>
   <url>
     <loc>https://lib-filetransfer.ludovicm67.fr/api/types/TransferFileMetadata.html</loc>
-    <lastmod>2026-07-24</lastmod>
+    <lastmod>2026-07-27</lastmod>
   </url>
   <url>
     <loc>https://lib-filetransfer.ludovicm67.fr/api/types/TransferFilePoolOptions.html</loc>
-    <lastmod>2026-07-24</lastmod>
+    <lastmod>2026-07-27</lastmod>
   </url>
 </urlset>
