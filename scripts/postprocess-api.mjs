@@ -1,6 +1,7 @@
 // Post-process the generated TypeDoc HTML:
 //   1. inject the lib-filetransfer brand mark into the header title;
-//   2. make the README Mermaid diagram render reliably in production.
+//   2. make the README Mermaid diagram render reliably in production;
+//   3. add a <link rel="canonical"> so each page declares a single indexable URL.
 //
 // (2) Detail: typedoc-plugin-mermaid injects `mermaid.initialize({startOnLoad:true})`,
 // which only hooks the window "load" event. But mermaid is imported asynchronously
@@ -8,10 +9,15 @@
 // and the diagram never renders. We switch to an explicit `mermaid.run()` and add
 // `data-cfasync="false"` so Cloudflare Rocket Loader leaves the ES module alone.
 import { readdir, readFile, writeFile } from "node:fs/promises";
-import { join, dirname } from "node:path";
+import { join, dirname, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const apiDir = join(dirname(fileURLToPath(import.meta.url)), "..", "docs", "api");
+const root = join(dirname(fileURLToPath(import.meta.url)), "..");
+const apiDir = join(root, "docs", "api");
+
+// Same base URL as the sitemap: the custom domain, kept in one place (site/CNAME).
+const cname = (await readFile(join(root, "site", "CNAME"), "utf8")).trim();
+const base = `https://${cname}`;
 
 const BRAND_MARK =
   '<svg class="lft-mark" viewBox="0 0 32 32" aria-hidden="true">' +
@@ -28,9 +34,11 @@ const MERMAID_REPLACE = "mermaid.initialize({startOnLoad:false});mermaid.run();"
 
 let brandPages = 0;
 let mermaidPages = 0;
+let canonicalPages = 0;
 const entries = await readdir(apiDir, { recursive: true });
-for (const rel of entries) {
-  if (!rel.endsWith(".html")) continue;
+for (const entry of entries) {
+  if (!entry.endsWith(".html")) continue;
+  const rel = entry.split(sep).join("/");
   const file = join(apiDir, rel);
   const original = await readFile(file, "utf8");
   let html = original;
@@ -52,9 +60,23 @@ for (const rel of entries) {
     mermaidPages++;
   }
 
+  // 3. Canonical URL. Pretty URLs match the sitemap: "index.html" -> "".
+  if (!html.includes('rel="canonical"')) {
+    const url = `${base}/api/${rel.replace(/(^|\/)index\.html$/, "$1")}`;
+    const withCanonical = html.replace(
+      "<head>",
+      `<head><link rel="canonical" href="${url}"/>`
+    );
+    if (withCanonical !== html) {
+      html = withCanonical;
+      canonicalPages++;
+    }
+  }
+
   if (html !== original) await writeFile(file, html);
 }
 
 console.log(
-  `✓ Header brand added to ${brandPages} page(s); mermaid render fix on ${mermaidPages} page(s)`
+  `✓ Header brand added to ${brandPages} page(s); mermaid render fix on ${mermaidPages} page(s); ` +
+    `canonical URL on ${canonicalPages} page(s)`
 );
