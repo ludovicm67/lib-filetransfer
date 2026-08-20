@@ -39,11 +39,12 @@ describe("testing the TransferFilePool class", () => {
     const blob = new Blob(["test"], {
       type: "text/plain",
     });
-    const { id, name, type } = await pool.addFile(blob, "test.txt");
+    const { id, name, type, size } = await pool.addFile(blob, "test.txt");
     pool.storeFileMetadata({
       id,
       name,
       type,
+      size,
     });
   });
 
@@ -657,24 +658,31 @@ describe("testing the TransferFilePool class", () => {
     deepStrictEqual(finalContent, "");
   });
 
-  it("should throw when the announced metadata is inconsistent", async () => {
-    const pool = new TransferFilePool({ maxBufferSize: 5 });
+  it("should throw if the 'size' field is missing", () => {
+    const pool = new TransferFilePool();
 
-    // a size is announced, but no bufferLength: without a check the download
-    // would complete instantly, with an empty Blob
-    const fileId = pool.storeFileMetadata({
-      id: "inconsistent",
-      name: "test.txt",
-      type: "text/plain",
-      size: 12,
-    });
-
-    await rejects(
-      async () => {
-        await pool.downloadFile(fileId);
-      },
-      /announces a size of 12 but a bufferLength of 0/,
+    // without a size the download would complete at once, with an empty Blob
+    throws(
+      () => pool.storeFileMetadata({
+        id: "no-size",
+        name: "test.txt",
+        type: "text/plain",
+      }),
+      /no 'size' field/,
     );
+  });
+
+  it("should accept an empty file being announced", () => {
+    const pool = new TransferFilePool();
+
+    // 0 is a size like any other: it is a missing field that is refused
+    const fileId = pool.storeFileMetadata({
+      id: "empty",
+      name: "empty.txt",
+      type: "text/plain",
+      size: 0,
+    });
+    deepStrictEqual(pool.getFileInfos(fileId).size, 0);
   });
 
   it("should keep the original error as the cause of a failed download", async () => {
@@ -688,7 +696,6 @@ describe("testing the TransferFilePool class", () => {
       name: "test.txt",
       type: "text/plain",
       size: 12,
-      bufferLength: 12,
     });
 
     await rejects(
@@ -975,7 +982,6 @@ describe("testing the TransferFilePool class", () => {
       name: "test.txt",
       type: "text/plain",
       size: 12,
-      bufferLength: 12,
     });
 
     pool.receiveFilePart(fileId, 0, 5, new ArrayBuffer(5));
@@ -1115,7 +1121,6 @@ describe("testing the TransferFilePool class", () => {
       name: "test.txt",
       type: "text/plain",
       size: 12,
-      bufferLength: 12,
     });
 
     await rejects(

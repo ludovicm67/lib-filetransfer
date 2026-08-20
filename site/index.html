@@ -343,7 +343,7 @@ onPeerMessage(async ({ fileId, offset, limit }) => {
 // Every option, shown with its default value — all of them are optional.
 const pool = new TransferFilePool({
   maxBufferSize: 16384,      // bytes to ask for at a time (16 KiB)
-  parallelCalls: 1,          // parts to request at the same time
+  parallelCalls: 4,          // parts to request at the same time
   timeout: 1,                // seconds to wait for a part before asking again
   retries: 10,               // re-asks before the download gives up
   keepPartsOnFailure: false, // keep received parts, to resume a failed download

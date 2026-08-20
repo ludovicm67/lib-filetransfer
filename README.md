@@ -78,7 +78,7 @@ And in your project, instantiate a pool like this:
 ```ts
 import { TransferFilePool } from "@ludovicm67/lib-filetransfer";
 
-const filePool = new TransferFilePool({ maxBufferSize: 5000 });
+const filePool = new TransferFilePool({ maxBufferSize: 16384 });
 ```
 
 To send a file to another user, you will need to add it to the pool like this:

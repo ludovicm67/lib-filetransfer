@@ -11,8 +11,9 @@ export type TransferFileMetadata = {
   id: string;
   name: string;
   type: string;
+
+  /** Size of the file, in bytes: what the receiver has to download. */
   size: number;
-  bufferLength: number;
 };
 
 export type AskFilePartCallback = (
@@ -31,8 +32,19 @@ export type TransferFilePoolOptions = {
    * Smaller parts mean more requests, and more bookkeeping for each of them.
    */
   maxBufferSize?: number;
+
+  /**
+   * How many parts to ask for at the same time. Defaults to `4`.
+   *
+   * Requesting parts one by one leaves the channel idle while each one travels,
+   * so overlapping them is what makes a transfer fast.
+   */
   parallelCalls?: number;
+
+  /** Seconds to wait for a part before asking for it again. Defaults to `1`. */
   timeout?: number;
+
+  /** How many times a part is re-asked before giving up. Defaults to `10`. */
   retries?: number;
 
   /**
@@ -78,7 +90,7 @@ export class TransferFilePool {
     this.maxBufferSize =
       options?.maxBufferSize !== undefined ? options.maxBufferSize : 16384;
     this.parallelCalls =
-      options?.parallelCalls !== undefined ? options.parallelCalls : 1;
+      options?.parallelCalls !== undefined ? options.parallelCalls : 4;
 
     if (options?.timeout !== undefined) {
       this.timeout = options.timeout;
@@ -134,6 +146,12 @@ export class TransferFilePool {
       throw new Error("no 'name' field");
     }
 
+    // check presence of 'size' field: 0 is fine (an empty file), missing is
+    // not -- the download would otherwise complete at once, with no content
+    if (metadata.size === undefined || metadata.size === null) {
+      throw new Error("no 'size' field");
+    }
+
     // only store it if the file is not in the pool
     if (!this.fileExists(metadata.id)) {
       this.transferFiles.set(
@@ -142,8 +160,7 @@ export class TransferFilePool {
           metadata.id,
           metadata.name,
           metadata.type || "application/octet-stream",
-          metadata.size || 0,
-          metadata.bufferLength || 0,
+          metadata.size,
           this.timeout,
           this.retries,
           this.keepPartsOnFailure
@@ -216,7 +233,6 @@ export class TransferFilePool {
       name,
       blob.type,
       blob.size,
-      0,
       this.timeout,
       this.retries,
       this.keepPartsOnFailure

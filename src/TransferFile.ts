@@ -31,7 +31,6 @@ export type TransferFileInfos = {
   name: string;
   type: string;
   size: number;
-  bufferLength: number;
 
   /**
    * Number of bytes of the file that are available so far, to display the
@@ -68,7 +67,6 @@ export class TransferFile {
   private partWaiters: Map<number, Set<TransferFilePartWaiter>> = new Map();
   private receivedBytes: number = 0; // bytes held in `parts`
   private data: Blob | undefined = undefined; // full data
-  private bufferLength: number;
 
   // state
   private inFlight: Promise<void> | undefined = undefined; // running download
@@ -90,8 +88,7 @@ export class TransferFile {
    * @param id Id of the file.
    * @param name Name of the file.
    * @param type Type of the file.
-   * @param size Size of the file.
-   * @param bufferLength Length of the internal buffer.
+   * @param size Size of the file, in bytes.
    * @param timeout Timeout for a single check in seconds.
    * @param retries Number of retries before considering it as a failure.
    * @param keepPartsOnFailure Keep the already received parts when a download fails (default: `false`).
@@ -101,7 +98,6 @@ export class TransferFile {
     name: string,
     type: string,
     size: number,
-    bufferLength: number,
     timeout?: number,
     retries?: number,
     keepPartsOnFailure?: boolean
@@ -110,7 +106,6 @@ export class TransferFile {
     this.name = name;
     this.type = type;
     this.size = size;
-    this.bufferLength = bufferLength;
 
     if (timeout !== undefined) {
       this.timeout = timeout;
@@ -194,11 +189,10 @@ export class TransferFile {
       name: this.name,
       type: this.type,
       size: this.size,
-      bufferLength: this.bufferLength,
 
       // once the file is complete the parts are released, but every byte of it
       // is there: the Blob holds them
-      receivedBytes: this.complete ? this.bufferLength : this.receivedBytes,
+      receivedBytes: this.complete ? this.size : this.receivedBytes,
 
       complete: this.complete,
       downloading: this.downloading,
@@ -267,19 +261,8 @@ export class TransferFile {
       );
     }
 
-    if (this.bufferLength < 0) {
-      throw new Error(
-        `bufferLength should not be negative, got: ${this.bufferLength}`
-      );
-    }
-
-    // A zero-length buffer is only legitimate for a genuinely empty file.
-    // Otherwise the metadata is inconsistent and the download would complete
-    // instantly with an empty Blob instead of failing.
-    if (this.bufferLength === 0 && this.size > 0) {
-      throw new Error(
-        `file '#${this.id}' announces a size of ${this.size} but a bufferLength of 0`
-      );
+    if (this.size < 0) {
+      throw new Error(`size should not be negative, got: ${this.size}`);
     }
 
     if (timeout === undefined) {
@@ -333,7 +316,7 @@ export class TransferFile {
     this.setError(undefined, false);
 
     try {
-      const partsCount = Math.ceil(this.bufferLength / maxBufferSize);
+      const partsCount = Math.ceil(this.size / maxBufferSize);
 
       // A fixed number of workers walk through the parts, rather than turning
       // every part into a queued promise up front: for a big file that would
@@ -410,7 +393,6 @@ export class TransferFile {
       name: this.name,
       size: this.size,
       type: this.type,
-      bufferLength: this.bufferLength,
     };
   }
 
@@ -442,7 +424,7 @@ export class TransferFile {
    */
   public async setBlob(blob: Blob): Promise<void> {
     this.data = blob;
-    this.bufferLength = blob.size;
+    this.size = blob.size;
     this.setComplete(true);
     this.setDownloading(false);
     this.setError(undefined, false);

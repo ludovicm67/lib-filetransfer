@@ -342,7 +342,7 @@
     const fileId = receiverPool.storeFileMetadata(meta);
     activeFileId = fileId;
 
-    const partsCount = Math.max(1, Math.ceil(meta.bufferLength / chunkSize));
+    const partsCount = Math.max(1, Math.ceil(meta.size / chunkSize));
     if (partsCount > MAX_CHUNKS) {
       setNote(
         `That's ${partsCount.toLocaleString()} chunks — too many to visualise smoothly. ` +
