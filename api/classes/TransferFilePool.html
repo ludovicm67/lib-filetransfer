@@ -1,4 +1,4 @@
-<!DOCTYPE html><html class="default" lang="en" data-base="../"><head><link rel="canonical" href="https://lib-filetransfer.ludovicm67.fr/api/classes/TransferFilePool.html"/><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>TransferFilePool | @ludovicm67/lib-filetransfer</title><meta name="description" content="Documentation for @ludovicm67/lib-filetransfer"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><link rel="stylesheet" href="../assets/custom.css"/><script defer src="../assets/main.js"></script><script async src="../assets/icons.js" id="tsd-icons-script"></script><script async src="../assets/search.js" id="tsd-search-script"></script><script async src="../assets/navigation.js" id="tsd-nav-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os";document.body.style.display="none";setTimeout(() => window.app?app.showPage():document.body.style.removeProperty("display"),500)</script><header class="tsd-page-toolbar">
+<!DOCTYPE html><html class="default" lang="en" data-base="../"><head><link rel="canonical" href="https://lib-filetransfer.ludovicm67.fr/api/classes/TransferFilePool.html"/><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>TransferFilePool | @ludovicm67/lib-filetransfer</title><meta name="description" content="The TransferFilePool class of lib-filetransfer, the TypeScript library that moves large files in chunks over any transport."/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><link rel="stylesheet" href="../assets/custom.css"/><script defer src="../assets/main.js"></script><script async src="../assets/icons.js" id="tsd-icons-script"></script><script async src="../assets/search.js" id="tsd-search-script"></script><script async src="../assets/navigation.js" id="tsd-nav-script"></script><meta property="og:type" content="article"/><meta property="og:site_name" content="lib-filetransfer"/><meta property="og:title" content="TransferFilePool | @ludovicm67/lib-filetransfer"/><meta property="og:description" content="The TransferFilePool class of lib-filetransfer, the TypeScript library that moves large files in chunks over any transport."/><meta property="og:url" content="https://lib-filetransfer.ludovicm67.fr/api/classes/TransferFilePool.html"/><meta property="og:image" content="https://lib-filetransfer.ludovicm67.fr/og.png"/><meta name="twitter:card" content="summary_large_image"/><meta name="twitter:image" content="https://lib-filetransfer.ludovicm67.fr/og.png"/></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os";document.body.style.display="none";setTimeout(() => window.app?app.showPage():document.body.style.removeProperty("display"),500)</script><header class="tsd-page-toolbar">
 <div class="tsd-toolbar-contents container"><a href="../index.html" class="title"><svg class="lft-mark" viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="lft-mark-grad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#38bdf8"/><stop offset=".5" stop-color="#818cf8"/><stop offset="1" stop-color="#c084fc"/></linearGradient></defs><rect x="2" y="7" width="10" height="10" rx="2.5" fill="url(#lft-mark-grad)"/><rect x="20" y="15" width="10" height="10" rx="2.5" fill="url(#lft-mark-grad)" opacity=".55"/><path d="M12 12h6a3 3 0 0 1 3 3v3" fill="none" stroke="url(#lft-mark-grad)" stroke-width="2" stroke-linecap="round"/></svg>@ludovicm67/lib-filetransfer</a>
 <div id="tsd-toolbar-links"><a href="https://lib-filetransfer.ludovicm67.fr/">Home</a><a href="https://lib-filetransfer.ludovicm67.fr/#demo">Live demo</a><a href="https://www.npmjs.com/package/@ludovicm67/lib-filetransfer">npm</a><a href="https://github.com/ludovicm67/lib-filetransfer">GitHub</a></div><button id="tsd-search-trigger" class="tsd-widget" aria-label="Search"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-search"></use></svg></button><dialog id="tsd-search" aria-label="Search"><input role="combobox" id="tsd-search-input" aria-controls="tsd-search-results" aria-autocomplete="list" aria-expanded="true" autocapitalize="off" autocomplete="off" placeholder="Search the docs" maxLength="100"/>
 <ul role="listbox" id="tsd-search-results"></ul>
@@ -11,7 +11,7 @@
 <li><a href="" aria-current="page">TransferFilePool</a></li></ul>
 <h1>Class TransferFilePool</h1></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/ludovicm67/lib-filetransfer/blob/4d043088e9baf502e7cf771f26cdfbce556aa06a/src/TransferFilePool.ts#L28">TransferFilePool.ts:28</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/ludovicm67/lib-filetransfer/blob/5b050b84749511f8ec437248afa3cbe618d94249/src/TransferFilePool.ts#L63">TransferFilePool.ts:63</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -31,6 +31,7 @@
 <a href="#fileexists" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>file<wbr/>Exists</span></a>
 <a href="#getblob" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Blob</span></a>
 <a href="#getfile" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>File</span></a>
+<a href="#getfileinfos" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>File<wbr/>Infos</span></a>
 <a href="#readfilepart" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>read<wbr/>File<wbr/>Part</span></a>
 <a href="#receivefilepart" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>receive<wbr/>File<wbr/>Part</span></a>
 <a href="#storefilemetadata" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>store<wbr/>File<wbr/>Metadata</span></a>
@@ -50,7 +51,7 @@
 <li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">options</span>: <a href="../types/TransferFilePoolOptions.html" class="tsd-signature-type tsd-kind-type-alias">TransferFilePoolOptions</a></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">TransferFilePool</a></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/ludovicm67/lib-filetransfer/blob/4d043088e9baf502e7cf771f26cdfbce556aa06a/src/TransferFilePool.ts#L40">TransferFilePool.ts:40</a></li></ul></aside></div></li></ul></section></section></details>
+<li>Defined in <a href="https://github.com/ludovicm67/lib-filetransfer/blob/5b050b84749511f8ec437248afa3cbe618d94249/src/TransferFilePool.ts#L76">TransferFilePool.ts:76</a></li></ul></aside></div></li></ul></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="methods-1">Methods<a href="#methods-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
@@ -70,7 +71,7 @@
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/ludovicm67/lib-filetransfer/blob/4d043088e9baf502e7cf771f26cdfbce556aa06a/src/TransferFilePool.ts#L156">TransferFilePool.ts:156</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/ludovicm67/lib-filetransfer/blob/5b050b84749511f8ec437248afa3cbe618d94249/src/TransferFilePool.ts#L209">TransferFilePool.ts:209</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="addfile"><span>add<wbr/>File</span><a href="#addfile" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -91,7 +92,7 @@
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../types/TransferFileMetadata.html" class="tsd-signature-type tsd-kind-type-alias">TransferFileMetadata</a><span class="tsd-signature-symbol">&gt;</span></h4><p>The metadata of the file.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/ludovicm67/lib-filetransfer/blob/4d043088e9baf502e7cf771f26cdfbce556aa06a/src/TransferFilePool.ts#L172">TransferFilePool.ts:172</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/ludovicm67/lib-filetransfer/blob/5b050b84749511f8ec437248afa3cbe618d94249/src/TransferFilePool.ts#L221">TransferFilePool.ts:221</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="clearfile"><span>clear<wbr/>File</span><a href="#clearfile" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -108,7 +109,7 @@
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/ludovicm67/lib-filetransfer/blob/4d043088e9baf502e7cf771f26cdfbce556aa06a/src/TransferFilePool.ts#L271">TransferFilePool.ts:271</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/ludovicm67/lib-filetransfer/blob/5b050b84749511f8ec437248afa3cbe618d94249/src/TransferFilePool.ts#L317">TransferFilePool.ts:317</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="deletefile"><span>delete<wbr/>File</span><a href="#deletefile" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -125,7 +126,7 @@
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/ludovicm67/lib-filetransfer/blob/4d043088e9baf502e7cf771f26cdfbce556aa06a/src/TransferFilePool.ts#L115">TransferFilePool.ts:115</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/ludovicm67/lib-filetransfer/blob/5b050b84749511f8ec437248afa3cbe618d94249/src/TransferFilePool.ts#L179">TransferFilePool.ts:179</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="downloadfile"><span>download<wbr/>File</span><a href="#downloadfile" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -148,7 +149,7 @@
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/ludovicm67/lib-filetransfer/blob/4d043088e9baf502e7cf771f26cdfbce556aa06a/src/TransferFilePool.ts#L133">TransferFilePool.ts:133</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/ludovicm67/lib-filetransfer/blob/5b050b84749511f8ec437248afa3cbe618d94249/src/TransferFilePool.ts#L190">TransferFilePool.ts:190</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="fileexists"><span>file<wbr/>Exists</span><a href="#fileexists" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -166,7 +167,7 @@
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><p>true if the file exists.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/ludovicm67/lib-filetransfer/blob/4d043088e9baf502e7cf771f26cdfbce556aa06a/src/TransferFilePool.ts#L73">TransferFilePool.ts:73</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/ludovicm67/lib-filetransfer/blob/5b050b84749511f8ec437248afa3cbe618d94249/src/TransferFilePool.ts#L112">TransferFilePool.ts:112</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getblob"><span>get<wbr/>Blob</span><a href="#getblob" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -184,7 +185,7 @@
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Blob</span></h4><p>The Blob of the complete file.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/ludovicm67/lib-filetransfer/blob/4d043088e9baf502e7cf771f26cdfbce556aa06a/src/TransferFilePool.ts#L258">TransferFilePool.ts:258</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/ludovicm67/lib-filetransfer/blob/5b050b84749511f8ec437248afa3cbe618d94249/src/TransferFilePool.ts#L308">TransferFilePool.ts:308</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getfile"><span>get<wbr/>File</span><a href="#getfile" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -202,14 +203,34 @@
 <h4 class="tsd-returns-title">Returns <a href="../types/TransferFileBlob.html" class="tsd-signature-type tsd-kind-type-alias">TransferFileBlob</a></h4><p>Informations representing the requested file.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/ludovicm67/lib-filetransfer/blob/4d043088e9baf502e7cf771f26cdfbce556aa06a/src/TransferFilePool.ts#L244">TransferFilePool.ts:244</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/ludovicm67/lib-filetransfer/blob/5b050b84749511f8ec437248afa3cbe618d94249/src/TransferFilePool.ts#L287">TransferFilePool.ts:287</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="getfileinfos"><span>get<wbr/>File<wbr/>Infos</span><a href="#getfileinfos" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="getfileinfos-1"><span class="tsd-kind-call-signature">getFileInfos</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">fileId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="../types/TransferFileInfos.html" class="tsd-signature-type tsd-kind-type-alias">TransferFileInfos</a><a href="#getfileinfos-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Get informations about a specific file, such as how much of it was already
+received.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">fileId</span>: <span class="tsd-signature-type">string</span></span>
+<div class="tsd-comment tsd-typography"><p>Id of the file.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="../types/TransferFileInfos.html" class="tsd-signature-type tsd-kind-type-alias">TransferFileInfos</a></h4><p>Informations about the requested file.</p>
+<aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/ludovicm67/lib-filetransfer/blob/5b050b84749511f8ec437248afa3cbe618d94249/src/TransferFilePool.ts#L298">TransferFilePool.ts:298</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="readfilepart"><span>read<wbr/>File<wbr/>Part</span><a href="#readfilepart" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
-<div class="tsd-signature tsd-anchor-link" id="readfilepart-1"><span class="tsd-kind-call-signature">readFilePart</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">fileId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">offset</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">limit</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">ArrayBuffer</span><a href="#readfilepart-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-signature tsd-anchor-link" id="readfilepart-1"><span class="tsd-kind-call-signature">readFilePart</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">fileId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">offset</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">limit</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">ArrayBuffer</span><span class="tsd-signature-symbol">&gt;</span><a href="#readfilepart-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Read a specific part of a file.</p>
+<p>Only that part is read: the file is never loaded as a whole.</p>
 </div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
@@ -223,10 +244,10 @@
 <li><span><span class="tsd-kind-parameter">limit</span>: <span class="tsd-signature-type">number</span></span>
 <div class="tsd-comment tsd-typography"><p>Maximum lenght of data we want to read.</p>
 </div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">ArrayBuffer</span></h4><p>ArrayBuffer containing the requested part of the file.</p>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">ArrayBuffer</span><span class="tsd-signature-symbol">&gt;</span></h4><p>ArrayBuffer containing the requested part of the file.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/ludovicm67/lib-filetransfer/blob/4d043088e9baf502e7cf771f26cdfbce556aa06a/src/TransferFilePool.ts#L205">TransferFilePool.ts:205</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/ludovicm67/lib-filetransfer/blob/5b050b84749511f8ec437248afa3cbe618d94249/src/TransferFilePool.ts#L256">TransferFilePool.ts:256</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="receivefilepart"><span>receive<wbr/>File<wbr/>Part</span><a href="#receivefilepart" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -252,7 +273,7 @@
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/ludovicm67/lib-filetransfer/blob/4d043088e9baf502e7cf771f26cdfbce556aa06a/src/TransferFilePool.ts#L225">TransferFilePool.ts:225</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/ludovicm67/lib-filetransfer/blob/5b050b84749511f8ec437248afa3cbe618d94249/src/TransferFilePool.ts#L272">TransferFilePool.ts:272</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="storefilemetadata"><span>store<wbr/>File<wbr/>Metadata</span><a href="#storefilemetadata" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -270,7 +291,7 @@
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4><p>The ID of the file.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/ludovicm67/lib-filetransfer/blob/4d043088e9baf502e7cf771f26cdfbce556aa06a/src/TransferFilePool.ts#L83">TransferFilePool.ts:83</a></li></ul></aside></div></li></ul></section></section></details></div>
+<li>Defined in <a href="https://github.com/ludovicm67/lib-filetransfer/blob/5b050b84749511f8ec437248afa3cbe618d94249/src/TransferFilePool.ts#L138">TransferFilePool.ts:138</a></li></ul></aside></div></li></ul></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
@@ -289,7 +310,7 @@
 <details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Constructors"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Constructors</summary>
 <div><a href="#constructor"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Constructor"><use href="../assets/icons.svg#icon-512"></use></svg><span>constructor</span></a></div></details>
 <details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Methods</summary>
-<div><a href="#abortfiledownload"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>abort<wbr/>File<wbr/>Download</span></a><a href="#addfile"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>add<wbr/>File</span></a><a href="#clearfile"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>clear<wbr/>File</span></a><a href="#deletefile"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>delete<wbr/>File</span></a><a href="#downloadfile"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>download<wbr/>File</span></a><a href="#fileexists"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>file<wbr/>Exists</span></a><a href="#getblob"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Blob</span></a><a href="#getfile"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>File</span></a><a href="#readfilepart"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>read<wbr/>File<wbr/>Part</span></a><a href="#receivefilepart"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>receive<wbr/>File<wbr/>Part</span></a><a href="#storefilemetadata"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>store<wbr/>File<wbr/>Metadata</span></a></div></details></div></details></div>
+<div><a href="#abortfiledownload"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>abort<wbr/>File<wbr/>Download</span></a><a href="#addfile"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>add<wbr/>File</span></a><a href="#clearfile"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>clear<wbr/>File</span></a><a href="#deletefile"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>delete<wbr/>File</span></a><a href="#downloadfile"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>download<wbr/>File</span></a><a href="#fileexists"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>file<wbr/>Exists</span></a><a href="#getblob"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Blob</span></a><a href="#getfile"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>File</span></a><a href="#getfileinfos"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>File<wbr/>Infos</span></a><a href="#readfilepart"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>read<wbr/>File<wbr/>Part</span></a><a href="#receivefilepart"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>receive<wbr/>File<wbr/>Part</span></a><a href="#storefilemetadata"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>store<wbr/>File<wbr/>Metadata</span></a></div></details></div></details></div>
 <div class="site-menu">
 <nav id="tsd-sidebar-links" class="tsd-navigation"><a href="https://lib-filetransfer.ludovicm67.fr/" class="tsd-nav-link">Home</a><a href="https://lib-filetransfer.ludovicm67.fr/#demo" class="tsd-nav-link">Live demo</a><a href="https://www.npmjs.com/package/@ludovicm67/lib-filetransfer" class="tsd-nav-link">npm</a><a href="https://github.com/ludovicm67/lib-filetransfer" class="tsd-nav-link">GitHub</a></nav>
 <nav class="tsd-navigation"><a href="../modules.html">@ludovicm67/lib-filetransfer</a>

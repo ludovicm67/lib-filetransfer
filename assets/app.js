@@ -144,6 +144,7 @@
   const channelCaption = el("channel-caption");
   const grid = el("chunk-grid");
   const progressBar = el("progress-bar");
+  const progressCaption = el("progress-caption");
   const result = el("result");
   const stat = {
     chunks: el("stat-chunks"),
@@ -223,7 +224,8 @@
 
   // Generate a colourful square sample image on a canvas — no external assets.
   btnSample.addEventListener("click", () => {
-    const S = 560; // square, easy to read as a thumbnail
+    const S = 1024; // square, easy to read as a thumbnail
+    const k = S / 560; // the composition below was drawn for a 560px canvas
     const c = document.createElement("canvas");
     c.width = S;
     c.height = S;
@@ -239,19 +241,20 @@
       ctx.beginPath();
       ctx.globalAlpha = 0.05 + Math.random() * 0.16;
       ctx.fillStyle = palette[(Math.random() * palette.length) | 0];
-      ctx.arc(Math.random() * S, Math.random() * S, 8 + Math.random() * 70, 0, 7);
+      ctx.arc(Math.random() * S, Math.random() * S, (8 + Math.random() * 70) * k, 0, 7);
       ctx.fill();
     }
     ctx.globalAlpha = 1;
     ctx.textAlign = "center";
     ctx.fillStyle = "rgba(255,255,255,0.97)";
-    ctx.font = "700 48px -apple-system, Segoe UI, sans-serif";
-    ctx.fillText("lib-", S / 2, S / 2 - 18);
-    ctx.fillText("filetransfer", S / 2, S / 2 + 40);
-    ctx.font = "400 22px -apple-system, Segoe UI, sans-serif";
+    ctx.font = `700 ${Math.round(48 * k)}px -apple-system, Segoe UI, sans-serif`;
+    ctx.fillText("lib-", S / 2, S / 2 - 18 * k);
+    ctx.fillText("filetransfer", S / 2, S / 2 + 40 * k);
+    ctx.font = `400 ${Math.round(22 * k)}px -apple-system, Segoe UI, sans-serif`;
     ctx.fillStyle = "rgba(255,255,255,0.85)";
-    ctx.fillText("chunked · retried · parallel", S / 2, S / 2 + 92);
-    // JPEG keeps the sample modest (~50 chunks) so the transfer stays watchable.
+    ctx.fillText("chunked · retried · parallel", S / 2, S / 2 + 92 * k);
+    // JPEG keeps the sample around a hundred chunks at the default chunk size,
+    // and under the MAX_CHUNKS cap even at the smallest one.
     c.toBlob((blob) => setFile(blob, "sample-image.jpg"), "image/jpeg", 0.9);
   });
 
@@ -259,6 +262,7 @@
   const resetStage = () => {
     grid.replaceChildren();
     progressBar.style.width = "0";
+    progressCaption.textContent = "0 B";
     result.hidden = true;
     result.replaceChildren();
     channel.querySelectorAll(".pkt, .lane-guide").forEach((p) => p.remove());
@@ -338,7 +342,7 @@
     const fileId = receiverPool.storeFileMetadata(meta);
     activeFileId = fileId;
 
-    const partsCount = Math.max(1, Math.ceil(meta.bufferLength / chunkSize));
+    const partsCount = Math.max(1, Math.ceil(meta.size / chunkSize));
     if (partsCount > MAX_CHUNKS) {
       setNote(
         `That's ${partsCount.toLocaleString()} chunks — too many to visualise smoothly. ` +
@@ -367,6 +371,7 @@
     btnStart.disabled = true;
     stat.status.textContent = "Transferring…";
     stat.chunks.textContent = `0 / ${partsCount}`;
+    progressCaption.textContent = `0 B / ${fmtBytes(meta.size)}`;
     channelCaption.textContent = `${parallel} parallel lane${parallel > 1 ? "s" : ""} · ${loss}% loss · ${latency}ms`;
 
     // One lane per parallel slot; allocate a free lane per in-flight request.
@@ -390,7 +395,7 @@
     }, 100);
 
     // The channel: receiver asks -> sender reads -> (lossy) delivery back.
-    const askFilePart = (id, offset, limit) => {
+    const askFilePart = async (id, offset, limit) => {
       const idx = Math.floor(offset / chunkSize);
       const attempt = (attempts.get(idx) || 0) + 1;
       attempts.set(idx, attempt);
@@ -400,8 +405,9 @@
       stat.retries.textContent = String(requests - attempts.size);
       if (!received.has(idx) && cells[idx]) cells[idx].className = "cell req";
 
-      // Sender reads the requested slice and serialises it for a text channel.
-      const part = sender.readFilePart(id, offset, limit);
+      // Sender reads just the requested slice — the file itself is never
+      // loaded in memory — and serialises it for a text channel.
+      const part = await sender.readFilePart(id, offset, limit);
       const wire = arrayBufferToString(part);
 
       const willDrop = Math.random() * 100 < loss;
@@ -422,10 +428,15 @@
         if (!received.has(idx)) {
           received.add(idx);
           if (cells[idx]) cells[idx].className = "cell recv";
-          const pct = (received.size / partsCount) * 100;
-          progressBar.style.width = `${pct}%`;
           stat.chunks.textContent = `${received.size} / ${partsCount}`;
         }
+
+        // The pool knows how much of the file it holds: no need to count bytes
+        // here. It is byte-accurate, so the shorter last chunk counts for what
+        // it really weighs.
+        const { receivedBytes, size } = receiverPool.getFileInfos(id);
+        progressBar.style.width = `${size ? (receivedBytes / size) * 100 : 100}%`;
+        progressCaption.textContent = `${fmtBytes(receivedBytes)} / ${fmtBytes(size)}`;
       }, latency);
     };
 
