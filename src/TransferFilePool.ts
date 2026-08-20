@@ -23,6 +23,13 @@ export type AskFilePartCallback = (
 
 export type TransferFilePoolOptions = {
   askFilePartCallback?: AskFilePartCallback;
+
+  /**
+   * Number of bytes to ask for at a time. Defaults to `16384` (16 KiB), the
+   * message size a WebRTC data channel handles everywhere.
+   *
+   * Smaller parts mean more requests, and more bookkeeping for each of them.
+   */
   maxBufferSize?: number;
   parallelCalls?: number;
   timeout?: number;
@@ -69,7 +76,7 @@ export class TransferFilePool {
     }
 
     this.maxBufferSize =
-      options?.maxBufferSize !== undefined ? options.maxBufferSize : 1000;
+      options?.maxBufferSize !== undefined ? options.maxBufferSize : 16384;
     this.parallelCalls =
       options?.parallelCalls !== undefined ? options.parallelCalls : 1;
 
@@ -223,16 +230,18 @@ export class TransferFilePool {
   /**
    * Read a specific part of a file.
    *
+   * Only that part is read: the file is never loaded as a whole.
+   *
    * @param fileId Id of the file.
    * @param offset From where to read.
    * @param limit Maximum lenght of data we want to read.
    * @returns ArrayBuffer containing the requested part of the file.
    */
-  public readFilePart(
+  public async readFilePart(
     fileId: string,
     offset: number,
     limit: number
-  ): ArrayBuffer {
+  ): Promise<ArrayBuffer> {
     return this.getTransferFile(fileId).readFilePart(offset, limit);
   }
 

@@ -95,7 +95,7 @@ describe("testing the TransferFilePool class", () => {
         // imagine the receiver sending a message to the sender to ask this part of this file…
 
         // sender part:
-        const partData = senderPool.readFilePart(fileId, offset, limit);
+        const partData = await senderPool.readFilePart(fileId, offset, limit);
 
         // imagine the sender sends the data to the receiver…
         await new Promise(r => setTimeout(r, Math.random() * 200));
@@ -140,7 +140,7 @@ describe("testing the TransferFilePool class", () => {
         // imagine the receiver sending a message to the sender to ask this part of this file…
 
         // sender part:
-        const partData = senderPool.readFilePart(fileId, offset, limit);
+        const partData = await senderPool.readFilePart(fileId, offset, limit);
 
         // imagine the sender sends the data to the receiver…
         await new Promise(r => setTimeout(r, Math.random() * 200));
@@ -192,7 +192,7 @@ describe("testing the TransferFilePool class", () => {
         // imagine the receiver sending a message to the sender to ask this part of this file…
 
         // sender part:
-        const partData = senderPool.readFilePart(fileId, offset, limit);
+        const partData = await senderPool.readFilePart(fileId, offset, limit);
 
         // imagine the sender sends the data to the receiver…
         await new Promise(r => setTimeout(r, Math.random() * 200));
@@ -244,7 +244,7 @@ describe("testing the TransferFilePool class", () => {
         // imagine the receiver sending a message to the sender to ask this part of this file…
 
         // sender part:
-        const partData = senderPool.readFilePart(fileId, offset, limit);
+        const partData = await senderPool.readFilePart(fileId, offset, limit);
 
         // imagine the sender sends the data to the receiver…
         await new Promise(r => setTimeout(r, Math.random() * 200));
@@ -294,7 +294,7 @@ describe("testing the TransferFilePool class", () => {
         // imagine the receiver sending a message to the sender to ask this part of this file…
 
         // sender part:
-        const partData = senderPool.readFilePart(fileId, offset, limit);
+        const partData = await senderPool.readFilePart(fileId, offset, limit);
 
         // imagine the sender sends the data to the receiver…
         await new Promise(r => setTimeout(r, 1500)); // default timeout is set to 1000
@@ -349,7 +349,7 @@ describe("testing the TransferFilePool class", () => {
         // imagine the receiver sending a message to the sender to ask this part of this file…
 
         // sender part:
-        const partData = senderPool.readFilePart(fileId, offset, limit);
+        const partData = await senderPool.readFilePart(fileId, offset, limit);
 
         // imagine the sender sends the data to the receiver…
         await new Promise(r => setTimeout(r, 3500)); // default timeout is set to 1000
@@ -401,7 +401,7 @@ describe("testing the TransferFilePool class", () => {
         // imagine the receiver sending a message to the sender to ask this part of this file…
 
         // sender part:
-        const partData = senderPool.readFilePart(fileId, offset, limit);
+        const partData = await senderPool.readFilePart(fileId, offset, limit);
 
         // imagine the sender sends the data to the receiver with some delay…
         await new Promise(r => setTimeout(r, 3500)); // default timeout is set to 1000
@@ -451,7 +451,7 @@ describe("testing the TransferFilePool class", () => {
         // imagine the receiver sending a message to the sender to ask this part of this file…
 
         // sender part:
-        const partData = senderPool.readFilePart(fileId, offset, limit);
+        const partData = await senderPool.readFilePart(fileId, offset, limit);
 
         // imagine the sender sends the data to the receiver with some delay…
         await new Promise(r => setTimeout(r, 200));
@@ -498,7 +498,7 @@ describe("testing the TransferFilePool class", () => {
         // imagine the receiver sending a message to the sender to ask this part of this file…
 
         // sender part:
-        const partData = senderPool.readFilePart(fileId, offset, limit);
+        const partData = await senderPool.readFilePart(fileId, offset, limit);
 
         // imagine the sender sends the data to the receiver…
         await new Promise(r => setTimeout(r, Math.random() * 200));
@@ -553,7 +553,7 @@ describe("testing the TransferFilePool class", () => {
       parallelCalls: 100,
       timeout: 0,
       retries: 0,
-      askFilePartCallback: (fileId, offset, limit) => {
+      askFilePartCallback: async (fileId, offset, limit) => {
         if (!deliver) {
           return;
         }
@@ -561,7 +561,7 @@ describe("testing the TransferFilePool class", () => {
           fileId,
           offset,
           limit,
-          senderPool.readFilePart(fileId, offset, limit)
+          await senderPool.readFilePart(fileId, offset, limit)
         );
       },
     });
@@ -602,7 +602,7 @@ describe("testing the TransferFilePool class", () => {
       maxBufferSize: 5,
       parallelCalls: 100,
       askFilePartCallback: async (fileId, offset, limit) => {
-        const partData = senderPool.readFilePart(fileId, offset, limit);
+        const partData = await senderPool.readFilePart(fileId, offset, limit);
         await new Promise(r => setTimeout(r, 100));
         sendCb(fileId, offset, limit, partData);
       },
@@ -640,12 +640,12 @@ describe("testing the TransferFilePool class", () => {
      */
     const receiverPool = new TransferFilePool({
       maxBufferSize: 5,
-      askFilePartCallback: (fileId, offset, limit) => {
+      askFilePartCallback: async (fileId, offset, limit) => {
         receiverPool.receiveFilePart(
           fileId,
           offset,
           limit,
-          senderPool.readFilePart(fileId, offset, limit)
+          await senderPool.readFilePart(fileId, offset, limit)
         );
       },
     });
@@ -726,7 +726,7 @@ describe("testing the TransferFilePool class", () => {
       parallelCalls: 100,
       timeout: 0,
       retries: 0,
-      askFilePartCallback: (fileId, offset, limit) => {
+      askFilePartCallback: async (fileId, offset, limit) => {
         askedOffsets.push(offset);
         if (!deliverEverything && offset !== 0) {
           return;
@@ -735,7 +735,7 @@ describe("testing the TransferFilePool class", () => {
           fileId,
           offset,
           limit,
-          senderPool.readFilePart(fileId, offset, limit)
+          await senderPool.readFilePart(fileId, offset, limit)
         );
       },
     });
@@ -780,7 +780,7 @@ describe("testing the TransferFilePool class", () => {
       timeout: 0,
       retries: 0,
       keepPartsOnFailure: true,
-      askFilePartCallback: (fileId, offset, limit) => {
+      askFilePartCallback: async (fileId, offset, limit) => {
         askedOffsets.push(offset);
         if (!deliverEverything && offset !== 0) {
           return;
@@ -789,7 +789,7 @@ describe("testing the TransferFilePool class", () => {
           fileId,
           offset,
           limit,
-          senderPool.readFilePart(fileId, offset, limit)
+          await senderPool.readFilePart(fileId, offset, limit)
         );
       },
     });
@@ -829,11 +829,11 @@ describe("testing the TransferFilePool class", () => {
     // first attempt with a buffer of 5: only the part at offset 0 is delivered
     await rejects(
       async () => {
-        await receiver.download(5, (_fileId, offset, limit) => {
+        await receiver.download(5, async (_fileId, offset, limit) => {
           if (offset !== 0) {
             return;
           }
-          receiver.receiveFilePart(offset, limit, sender.readFilePart(offset, limit));
+          receiver.receiveFilePart(offset, limit, await sender.readFilePart(offset, limit));
         });
       },
       /missing part/,
@@ -841,8 +841,8 @@ describe("testing the TransferFilePool class", () => {
 
     // second attempt with a buffer of 4: the kept 5-byte part cannot be reused,
     // and has to be dropped instead of ending up in the final Blob
-    await receiver.download(4, (_fileId, offset, limit) => {
-      receiver.receiveFilePart(offset, limit, sender.readFilePart(offset, limit));
+    await receiver.download(4, async (_fileId, offset, limit) => {
+      receiver.receiveFilePart(offset, limit, await sender.readFilePart(offset, limit));
     });
 
     const finalContent = await receiver.getBlob().text();
@@ -898,9 +898,9 @@ describe("testing the TransferFilePool class", () => {
       receiver.clear();
 
       let askedParts = 0;
-      await receiver.download(bufferSize, (_fileId, offset, limit) => {
+      await receiver.download(bufferSize, async (_fileId, offset, limit) => {
         askedParts++;
-        receiver.receiveFilePart(offset, limit, sender.readFilePart(offset, limit));
+        receiver.receiveFilePart(offset, limit, await sender.readFilePart(offset, limit));
       });
 
       deepStrictEqual(askedParts, Math.ceil(content.length / bufferSize));
@@ -942,12 +942,12 @@ describe("testing the TransferFilePool class", () => {
     const progress = [];
     const receiverPool = new TransferFilePool({
       maxBufferSize: 5,
-      askFilePartCallback: (fileId, offset, limit) => {
+      askFilePartCallback: async (fileId, offset, limit) => {
         receiverPool.receiveFilePart(
           fileId,
           offset,
           limit,
-          senderPool.readFilePart(fileId, offset, limit)
+          await senderPool.readFilePart(fileId, offset, limit)
         );
         progress.push(receiverPool.getFileInfos(fileId).receivedBytes);
       },
@@ -999,12 +999,12 @@ describe("testing the TransferFilePool class", () => {
      */
     const receiverPool = new TransferFilePool({
       maxBufferSize: 5,
-      askFilePartCallback: (fileId, offset, limit) => {
+      askFilePartCallback: async (fileId, offset, limit) => {
         receiverPool.receiveFilePart(
           fileId,
           offset,
           limit,
-          senderPool.readFilePart(fileId, offset, limit)
+          await senderPool.readFilePart(fileId, offset, limit)
         );
       },
     });
@@ -1020,5 +1020,109 @@ describe("testing the TransferFilePool class", () => {
   it("should throw when asking the infos of a file that is not in the pool", () => {
     const pool = new TransferFilePool();
     throws(() => pool.getFileInfos("unknown"), /file '#unknown' does not exist/);
+  });
+
+  it("should abort a download while it is waiting for a part", async () => {
+    /**
+     * SENDER
+     */
+    const senderPool = new TransferFilePool({});
+    const file = new Blob(["Hello world!"], {
+      type: "text/plain",
+    });
+    const fileMetadata = await senderPool.addFile(file, "test.txt");
+
+    /**
+     * RECEIVER
+     */
+    // Nothing is ever delivered, and the timeout is long: only the abort can
+    // put an end to the wait.
+    const receiverPool = new TransferFilePool({
+      maxBufferSize: 5,
+      parallelCalls: 100,
+      timeout: 10,
+      retries: 0,
+      askFilePartCallback: () => { },
+    });
+    receiverPool.storeFileMetadata({ ...fileMetadata });
+
+    const startedAt = Date.now();
+    const downloadPromise = receiverPool.downloadFile(fileMetadata.id);
+
+    // give the download the time to actually start waiting for its parts
+    await new Promise(r => setTimeout(r, 50));
+    receiverPool.abortFileDownload(fileMetadata.id);
+
+    await rejects(downloadPromise, new Error("download aborted"));
+
+    // it has to give up right away, not to sit until the 10s timeout
+    const elapsed = Date.now() - startedAt;
+    deepStrictEqual(elapsed < 2000, true, `took ${elapsed}ms to abort`);
+  });
+
+  it("should be able to serve a file that was just received", async () => {
+    /**
+     * SENDER
+     */
+    const senderPool = new TransferFilePool({});
+    const file = new Blob(["Hello world!"], {
+      type: "text/plain",
+    });
+    const fileMetadata = await senderPool.addFile(file, "test.txt");
+
+    /**
+     * RECEIVER: gets the file…
+     */
+    const receiverPool = new TransferFilePool({
+      maxBufferSize: 5,
+      askFilePartCallback: async (fileId, offset, limit) => {
+        receiverPool.receiveFilePart(
+          fileId,
+          offset,
+          limit,
+          await senderPool.readFilePart(fileId, offset, limit)
+        );
+      },
+    });
+    receiverPool.storeFileMetadata({ ...fileMetadata });
+    await receiverPool.downloadFile(fileMetadata.id);
+
+    /**
+     * THIRD PEER: … and gets it from the receiver, not from the sender
+     */
+    const relayPool = new TransferFilePool({
+      maxBufferSize: 5,
+      askFilePartCallback: async (fileId, offset, limit) => {
+        relayPool.receiveFilePart(
+          fileId,
+          offset,
+          limit,
+          await receiverPool.readFilePart(fileId, offset, limit)
+        );
+      },
+    });
+    relayPool.storeFileMetadata({ ...fileMetadata });
+    await relayPool.downloadFile(fileMetadata.id);
+
+    const finalContent = await relayPool.getFile(fileMetadata.id).data.text();
+    deepStrictEqual(finalContent, "Hello world!");
+  });
+
+  it("should throw when reading a part of a file that has no content", async () => {
+    const pool = new TransferFilePool({ maxBufferSize: 5 });
+    const fileId = pool.storeFileMetadata({
+      id: "announced-only",
+      name: "test.txt",
+      type: "text/plain",
+      size: 12,
+      bufferLength: 12,
+    });
+
+    await rejects(
+      async () => {
+        await pool.readFilePart(fileId, 0, 5);
+      },
+      /no content to read for file '#announced-only'/,
+    );
   });
 });

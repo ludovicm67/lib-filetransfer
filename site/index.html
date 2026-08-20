@@ -96,7 +96,7 @@
               <li>🧩 Transport-agnostic</li>
               <li>♻️ Auto-retry</li>
               <li>⚡ Parallel</li>
-              <li>🪶 ~3&nbsp;dependencies</li>
+              <li>🪶 2&nbsp;dependencies</li>
             </ul>
           </div>
 
@@ -318,15 +318,18 @@
                 <div class="code-head"><span>sender.ts</span><button class="copy-btn ghost" data-copy-target="code-sender" aria-label="Copy code"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path fill="currentColor" d="M9 2a2 2 0 0 0-2 2v1H6a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2v-1h1a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H9Zm0 2h9v11h-1V7a2 2 0 0 0-2-2H9V4ZM6 7h9v13H6V7Z"/></svg><span>Copy</span></button></div>
 <pre class="code" id="code-sender"><code>import { TransferFilePool } from "@ludovicm67/lib-filetransfer";
 
-const pool = new TransferFilePool({ maxBufferSize: 16_000 });
+// A pool takes the options listed in the receiver tab; sending uses none of
+// them, so the defaults are fine here.
+const pool = new TransferFilePool();
 
 // 1. Add a File or Blob — get back metadata to announce.
 const metadata = await pool.addFile(file, file.name);
 sendToPeer({ type: "meta", metadata });
 
 // 2. When the receiver asks for a part, read and reply.
-onPeerMessage(({ fileId, offset, limit }) => {
-  const data = pool.readFilePart(fileId, offset, limit);
+//    Only that slice is read — the file is never loaded as a whole.
+onPeerMessage(async ({ fileId, offset, limit }) => {
+  const data = await pool.readFilePart(fileId, offset, limit);
   sendToPeer({ type: "part", fileId, offset, limit, data });
 });</code></pre>
               </div>
@@ -337,7 +340,15 @@ onPeerMessage(({ fileId, offset, limit }) => {
                 <div class="code-head"><span>receiver.ts</span><button class="copy-btn ghost" data-copy-target="code-receiver" aria-label="Copy code"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path fill="currentColor" d="M9 2a2 2 0 0 0-2 2v1H6a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2v-1h1a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H9Zm0 2h9v11h-1V7a2 2 0 0 0-2-2H9V4ZM6 7h9v13H6V7Z"/></svg><span>Copy</span></button></div>
 <pre class="code" id="code-receiver"><code>import { TransferFilePool } from "@ludovicm67/lib-filetransfer";
 
-const pool = new TransferFilePool({ maxBufferSize: 16_000 });
+// Every option, shown with its default value — all of them are optional.
+const pool = new TransferFilePool({
+  maxBufferSize: 16384,      // bytes to ask for at a time (16 KiB)
+  parallelCalls: 1,          // parts to request at the same time
+  timeout: 1,                // seconds to wait for a part before asking again
+  retries: 10,               // re-asks before the download gives up
+  keepPartsOnFailure: false, // keep received parts, to resume a failed download
+  // askFilePartCallback     // used when downloadFile() is called without one
+});
 
 // 1. Store the announced metadata.
 const fileId = pool.storeFileMetadata(metadata);

@@ -1,4 +1,3 @@
-import pLimit from "p-limit";
 import {
   AskFilePartCallback,
   TransferFileMetadata,
@@ -62,7 +61,6 @@ export class TransferFile {
   private partWaiters: Map<number, Set<TransferFilePartWaiter>> = new Map();
   private receivedBytes: number = 0; // bytes held in `parts`
   private data: Blob | undefined = undefined; // full data
-  private buffer: ArrayBuffer | undefined = undefined;
   private bufferLength: number;
 
   // state
@@ -125,6 +123,19 @@ export class TransferFile {
    */
   public setDownloading(isDownloading: boolean = true): void {
     this.downloading = isDownloading;
+
+    // Nothing is going to be received anymore: release whoever is waiting for
+    // a part, instead of letting them sit there until their timeout.
+    if (!isDownloading) {
+      const pending = [...this.partWaiters.values()];
+      this.partWaiters.clear();
+
+      for (const waiters of pending) {
+        for (const waiter of waiters) {
+          waiter.notify(false);
+        }
+      }
+    }
   }
 
   /**
@@ -313,21 +324,45 @@ export class TransferFile {
     this.setError(undefined, false);
 
     try {
-      const limit = pLimit(parallelCalls);
       const partsCount = Math.ceil(this.bufferLength / maxBufferSize);
-      await Promise.all(
-        [...Array(partsCount).keys()].map((offset) =>
-          limit(() => {
-            return this.waitFilePartWithRetry(
+
+      // A fixed number of workers walk through the parts, rather than turning
+      // every part into a queued promise up front: for a big file that would
+      // cost a lot of memory before a single byte is even transferred.
+      const workers = Math.max(1, Math.min(parallelCalls, partsCount));
+      let nextPart = 0;
+      let failure: unknown = undefined;
+
+      const worker = async (): Promise<void> => {
+        while (failure === undefined) {
+          const part = nextPart++;
+          if (part >= partsCount) {
+            return;
+          }
+
+          try {
+            await this.waitFilePartWithRetry(
               askFilePartCallback,
-              offset * maxBufferSize,
+              part * maxBufferSize,
               maxBufferSize,
               timeout,
               retries
             );
-          })
-        )
-      );
+          } catch (e: unknown) {
+            failure = e;
+            return;
+          }
+        }
+      };
+
+      // Every worker has settled by the time this resolves, so none of them is
+      // still around to store a part after a failure released them.
+      await Promise.all(Array.from({ length: workers }, () => worker()));
+
+      if (failure !== undefined) {
+        throw failure;
+      }
+
       this.setComplete(true);
       // Build the Blob while the parts are still around, then release them:
       // the Blob holds the data from now on.
@@ -390,12 +425,15 @@ export class TransferFile {
 
   /**
    * Set a Blob as being the content of this file.
+   *
+   * The Blob is kept as it is: its content is only read when a part of it is
+   * requested. A Blob coming from an `<input type="file">` is backed by the
+   * file on disk, so a file of any size can be sent without ever being held
+   * in memory as a whole.
    */
   public async setBlob(blob: Blob): Promise<void> {
-    const b = new Blob([blob], { type: blob.type });
-    this.data = b;
-    this.buffer = await b.arrayBuffer();
-    this.bufferLength = this.buffer.byteLength;
+    this.data = blob;
+    this.bufferLength = blob.size;
     this.setComplete(true);
     this.setDownloading(false);
     this.setError(undefined, false);
@@ -404,16 +442,22 @@ export class TransferFile {
   /**
    * Read `limit` bytes at maximum from `offset` from the file.
    *
+   * Only the requested slice is read: the rest of the file stays where it is,
+   * instead of being loaded in memory.
+   *
    * @param offset Offset from the start.
    * @param limit Maximum number of bytes to return.
    * @returns ArrayBuffer with the requested file part.
    */
-  public readFilePart(offset: number, limit: number): ArrayBuffer {
-    if (this.buffer === undefined) {
-      throw new Error(`buffer is not defined for file '#${this.id}'`);
+  public async readFilePart(
+    offset: number,
+    limit: number
+  ): Promise<ArrayBuffer> {
+    if (this.data === undefined) {
+      throw new Error(`no content to read for file '#${this.id}'`);
     }
 
-    return this.buffer.slice(offset, offset + limit);
+    return this.data.slice(offset, offset + limit).arrayBuffer();
   }
 
   /**
@@ -541,13 +585,14 @@ export class TransferFile {
       return;
     }
 
-    if (!this.isDownloading()) {
-      throw new Error("download aborted");
-    }
-
     let success = false;
 
     for (let i = retries; i >= 0; i--) {
+      // the download may have been aborted while we were waiting
+      if (!this.isDownloading()) {
+        throw new Error("download aborted");
+      }
+
       // ask (or re-ask) for the part, then wait for it to land
       askFilePartCallback(this.id, offset, limit);
 
@@ -559,6 +604,10 @@ export class TransferFile {
     }
 
     if (!success) {
+      if (!this.isDownloading()) {
+        throw new Error("download aborted");
+      }
+
       throw new Error(
         `missing part (limit=${limit}, offset=${offset}) for file '#${this.id}'`
       );
@@ -574,7 +623,6 @@ export class TransferFile {
     this.setDownloading(false);
     this.setError(undefined, false);
     this.data = undefined;
-    this.buffer = undefined;
     this.parts = new Map();
     this.partsBufferSize = undefined;
     this.receivedBytes = 0;

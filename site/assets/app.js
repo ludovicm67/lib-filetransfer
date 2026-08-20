@@ -395,7 +395,7 @@
     }, 100);
 
     // The channel: receiver asks -> sender reads -> (lossy) delivery back.
-    const askFilePart = (id, offset, limit) => {
+    const askFilePart = async (id, offset, limit) => {
       const idx = Math.floor(offset / chunkSize);
       const attempt = (attempts.get(idx) || 0) + 1;
       attempts.set(idx, attempt);
@@ -405,8 +405,9 @@
       stat.retries.textContent = String(requests - attempts.size);
       if (!received.has(idx) && cells[idx]) cells[idx].className = "cell req";
 
-      // Sender reads the requested slice and serialises it for a text channel.
-      const part = sender.readFilePart(id, offset, limit);
+      // Sender reads just the requested slice — the file itself is never
+      // loaded in memory — and serialises it for a text channel.
+      const part = await sender.readFilePart(id, offset, limit);
       const wire = arrayBufferToString(part);
 
       const willDrop = Math.random() * 100 < loss;
