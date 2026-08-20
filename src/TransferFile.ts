@@ -4,7 +4,21 @@ import {
   TransferFileMetadata,
 } from "./TransferFilePool.js";
 
-type TransferFileParts = Record<string, ArrayBuffer>;
+type TransferFilePart = {
+  limit: number;
+  data: ArrayBuffer;
+};
+
+type TransferFileParts = Map<number, TransferFilePart>;
+
+/**
+ * Someone waiting for a part to arrive, woken up by `receiveFilePart()` or by
+ * its own timeout.
+ */
+type TransferFilePartWaiter = {
+  limit: number;
+  notify: (received: boolean) => void;
+};
 
 export type TransferFileInfos = {
   id: string;
@@ -35,8 +49,9 @@ export class TransferFile {
   private size: number;
 
   // store data
-  private parts: TransferFileParts = {}; // while fetching content
+  private parts: TransferFileParts = new Map(); // while fetching content
   private partsBufferSize: number | undefined = undefined; // size they were asked with
+  private partWaiters: Map<number, Set<TransferFilePartWaiter>> = new Map();
   private data: Blob | undefined = undefined; // full data
   private buffer: ArrayBuffer | undefined = undefined;
   private bufferLength: number;
@@ -173,27 +188,13 @@ export class TransferFile {
 
     // generate the blob if it does not exist
     if (this.data === undefined) {
-      this.data = new Blob(
-        Object.keys(this.parts)
-          .sort((x, y) => {
-            const offsetX = parseInt(x.replace(/.*-/, ""), 10);
-            const offsetY = parseInt(y.replace(/.*-/, ""), 10);
+      const orderedParts = [...this.parts.entries()]
+        .sort(([offsetX], [offsetY]) => offsetX - offsetY)
+        .map(([, part]) => part.data);
 
-            if (offsetX < offsetY) {
-              return -1;
-            }
-
-            if (offsetX > offsetY) {
-              return 1;
-            }
-
-            return 0;
-          })
-          .map((fPart) => this.parts[fPart]),
-        {
-          type: this.type,
-        }
-      );
+      this.data = new Blob(orderedParts, {
+        type: this.type,
+      });
     }
 
     return this.data;
@@ -289,7 +290,7 @@ export class TransferFile {
     // Parts kept from a previous attempt are only reusable if they were asked
     // with the same buffer size: mixing sizes would produce a corrupted Blob.
     if (this.partsBufferSize !== maxBufferSize) {
-      this.parts = {};
+      this.parts = new Map();
     }
     this.partsBufferSize = maxBufferSize;
 
@@ -316,7 +317,7 @@ export class TransferFile {
       // Build the Blob while the parts are still around, then release them:
       // the Blob holds the data from now on.
       this.getBlob();
-      this.parts = {};
+      this.parts = new Map();
     } catch (e: any) {
       const msg = e?.message || "something went wrong";
       this.setComplete(false);
@@ -325,7 +326,7 @@ export class TransferFile {
       // Drop what was received, unless the caller asked to keep it so that a
       // later attempt can resume instead of asking for everything again.
       if (!this.keepPartsOnFailure) {
-        this.parts = {};
+        this.parts = new Map();
       }
 
       // re-throw the error we catched, keeping the original one as the cause
@@ -410,7 +411,18 @@ export class TransferFile {
     limit: number,
     data: ArrayBuffer
   ): void {
-    this.parts[`${limit}-${offset}`] = data;
+    this.parts.set(offset, { limit, data });
+
+    // wake up whoever is waiting for this exact part
+    const waiters = this.partWaiters.get(offset);
+    if (waiters === undefined) {
+      return;
+    }
+    for (const waiter of waiters) {
+      if (waiter.limit === limit) {
+        waiter.notify(true);
+      }
+    }
   }
 
   /**
@@ -418,10 +430,12 @@ export class TransferFile {
    *
    * @param offset Offset from the start.
    * @param limit The requested limit.
-   * @returns true if the part exists or if the file is complete.
+   * @returns true if the part exists.
    */
-  public hasPart(offset: number, limit: number) {
-    return this.parts && this.parts[`${limit}-${offset}`];
+  public hasPart(offset: number, limit: number): boolean {
+    const part = this.parts.get(offset);
+
+    return part !== undefined && part.limit === limit;
   }
 
   /**
@@ -440,19 +454,39 @@ export class TransferFile {
     if (this.isComplete()) {
       return true;
     }
-
-    for (let i = timeout * 10; i >= 0; i--) {
-      if (this.hasPart(offset, limit)) {
-        return true;
-      }
-
-      // no point in sleeping after the last check: we are about to give up
-      if (i > 0) {
-        await new Promise((r) => setTimeout(r, 100));
-      }
+    if (this.hasPart(offset, limit)) {
+      return true;
     }
 
-    return false;
+    // The part is not there yet: register a waiter that `receiveFilePart()`
+    // resolves as soon as it lands, so we do not have to poll for it.
+    return new Promise<boolean>((resolve) => {
+      const waiter: TransferFilePartWaiter = {
+        limit,
+        notify: (received: boolean) => {
+          clearTimeout(timer);
+
+          const waiters = this.partWaiters.get(offset);
+          if (waiters !== undefined) {
+            waiters.delete(waiter);
+            if (waiters.size === 0) {
+              this.partWaiters.delete(offset);
+            }
+          }
+
+          resolve(received);
+        },
+      };
+
+      const timer = setTimeout(() => waiter.notify(false), timeout * 1000);
+
+      let waiters = this.partWaiters.get(offset);
+      if (waiters === undefined) {
+        waiters = new Set();
+        this.partWaiters.set(offset, waiters);
+      }
+      waiters.add(waiter);
+    });
   }
 
   /**
@@ -517,7 +551,7 @@ export class TransferFile {
     this.setError(undefined, false);
     this.data = undefined;
     this.buffer = undefined;
-    this.parts = {};
+    this.parts = new Map();
     this.partsBufferSize = undefined;
   }
 }

@@ -848,4 +848,65 @@ describe("testing the TransferFilePool class", () => {
     const finalContent = await receiver.getBlob().text();
     deepStrictEqual(finalContent, content);
   });
+
+  it("should reassemble parts received out of order", async () => {
+    const file = new TransferFile("f", "test.txt", "text/plain", 12, 12);
+
+    // "Hello world!" split in 3 parts of 5 bytes, delivered backwards
+    const encoder = new TextEncoder();
+    file.receiveFilePart(10, 5, encoder.encode("d!").buffer);
+    file.receiveFilePart(5, 5, encoder.encode(" worl").buffer);
+    file.receiveFilePart(0, 5, encoder.encode("Hello").buffer);
+    file.setComplete(true);
+
+    const finalContent = await file.getBlob().text();
+    deepStrictEqual(finalContent, "Hello world!");
+  });
+
+  it("should report the presence of a part as a boolean", () => {
+    const file = new TransferFile("f", "test.txt", "text/plain", 12, 12);
+    deepStrictEqual(file.hasPart(0, 5), false);
+
+    file.receiveFilePart(0, 5, new ArrayBuffer(5));
+    deepStrictEqual(file.hasPart(0, 5), true);
+
+    // a part asked with another buffer size is not the one we are looking for
+    deepStrictEqual(file.hasPart(0, 4), false);
+    deepStrictEqual(file.hasPart(5, 5), false);
+  });
+
+  it("should ignore the deletion of a file that is not in the pool", () => {
+    const pool = new TransferFilePool();
+    pool.deleteFile("never-added");
+    deepStrictEqual(pool.fileExists("never-added"), false);
+  });
+
+  it("should download the same file again with different buffer sizes", async () => {
+    const content = "Hello world!"; // 12 bytes
+
+    // sender side
+    const sender = new TransferFile("s", "test.txt", "text/plain", 12, 0);
+    await sender.setBlob(new Blob([content], { type: "text/plain" }));
+
+    // receiver side
+    const receiver = new TransferFile("r", "test.txt", "text/plain", 12, 12, 0, 0);
+
+    // the same file, downloaded over and over with another buffer size each
+    // time: clearing in between is what makes a new download really happen,
+    // since a complete file has nothing left to download
+    for (const bufferSize of [5, 20, 100, 75]) {
+      receiver.clear();
+
+      let askedParts = 0;
+      await receiver.download(bufferSize, (_fileId, offset, limit) => {
+        askedParts++;
+        receiver.receiveFilePart(offset, limit, sender.readFilePart(offset, limit));
+      });
+
+      deepStrictEqual(askedParts, Math.ceil(content.length / bufferSize));
+
+      const finalContent = await receiver.getBlob().text();
+      deepStrictEqual(finalContent, content);
+    }
+  });
 });

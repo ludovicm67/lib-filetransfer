@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
 import { TransferFile, TransferFileBlob } from "./TransferFile.js";
 
-type TransferFilePoolFiles = Record<string, TransferFile>;
+type TransferFilePoolFiles = Map<string, TransferFile>;
 
 export type TransferFileMetadata = {
   id: string;
@@ -51,7 +51,7 @@ export class TransferFilePool {
   private askFilePartCallback: AskFilePartCallback;
 
   constructor(options?: TransferFilePoolOptions) {
-    this.transferFiles = {};
+    this.transferFiles = new Map();
 
     // manage askFilePartCallback
     if (options?.askFilePartCallback) {
@@ -87,7 +87,23 @@ export class TransferFilePool {
    * @returns true if the file exists.
    */
   public fileExists(fileId: string): boolean {
-    return Object.keys(this.transferFiles).includes(fileId);
+    return this.transferFiles.has(fileId);
+  }
+
+  /**
+   * Get a file of the pool, or throw if it is not there.
+   *
+   * @param fileId Id of the file.
+   * @returns The requested file.
+   */
+  private getTransferFile(fileId: string): TransferFile {
+    const file = this.transferFiles.get(fileId);
+
+    if (file === undefined) {
+      throw new Error(`file '#${fileId}' does not exist`);
+    }
+
+    return file;
   }
 
   /**
@@ -109,15 +125,18 @@ export class TransferFilePool {
 
     // only store it if the file is not in the pool
     if (!this.fileExists(metadata.id)) {
-      this.transferFiles[metadata.id] = new TransferFile(
+      this.transferFiles.set(
         metadata.id,
-        metadata.name,
-        metadata.type || "application/octet-stream",
-        metadata.size || 0,
-        metadata.bufferLength || 0,
-        this.timeout,
-        this.retries,
-        this.keepPartsOnFailure
+        new TransferFile(
+          metadata.id,
+          metadata.name,
+          metadata.type || "application/octet-stream",
+          metadata.size || 0,
+          metadata.bufferLength || 0,
+          this.timeout,
+          this.retries,
+          this.keepPartsOnFailure
+        )
       );
     }
 
@@ -130,14 +149,7 @@ export class TransferFilePool {
    * @param fileId Id of the file.
    */
   public deleteFile(fileId: string): void {
-    if (!this.fileExists(fileId)) {
-      return;
-    }
-
-    // remove keys with the specified fileId
-    this.transferFiles = Object.fromEntries(
-      Object.entries(this.transferFiles).filter((x) => x[0] !== fileId)
-    );
+    this.transferFiles.delete(fileId);
   }
 
   /**
@@ -152,11 +164,7 @@ export class TransferFilePool {
     askFilePartCallback?: AskFilePartCallback,
     parallelCalls?: number
   ): Promise<void> {
-    if (!this.fileExists(fileId)) {
-      throw new Error(`file '#${fileId}' does not exist`);
-    }
-
-    const file = this.transferFiles[fileId];
+    const file = this.getTransferFile(fileId);
     const calls = parallelCalls ? parallelCalls : this.parallelCalls;
     if (askFilePartCallback !== undefined) {
       await file.download(this.maxBufferSize, askFilePartCallback, calls);
@@ -171,11 +179,7 @@ export class TransferFilePool {
    * @param fileId Id of the file.
    */
   public abortFileDownload(fileId: string): void {
-    if (!this.fileExists(fileId)) {
-      throw new Error(`file '#${fileId}' does not exist`);
-    }
-
-    const file = this.transferFiles[fileId];
+    const file = this.getTransferFile(fileId);
     file.setDownloading(false);
   }
 
@@ -207,7 +211,7 @@ export class TransferFilePool {
       this.keepPartsOnFailure
     );
     await f.setBlob(blob);
-    this.transferFiles[fId] = f;
+    this.transferFiles.set(fId, f);
 
     return f.getMetadata();
   }
@@ -225,11 +229,7 @@ export class TransferFilePool {
     offset: number,
     limit: number
   ): ArrayBuffer {
-    if (!this.fileExists(fileId)) {
-      throw new Error(`file '#${fileId}' does not exist`);
-    }
-
-    return this.transferFiles[fileId].readFilePart(offset, limit);
+    return this.getTransferFile(fileId).readFilePart(offset, limit);
   }
 
   /**
@@ -246,11 +246,7 @@ export class TransferFilePool {
     limit: number,
     data: ArrayBuffer
   ): void {
-    if (!this.fileExists(fileId)) {
-      throw new Error(`file '#${fileId}' does not exist`);
-    }
-
-    this.transferFiles[fileId].receiveFilePart(offset, limit, data);
+    this.getTransferFile(fileId).receiveFilePart(offset, limit, data);
   }
 
   /**
@@ -260,11 +256,7 @@ export class TransferFilePool {
    * @returns Informations representing the requested file.
    */
   public getFile(fileId: string): TransferFileBlob {
-    if (!this.fileExists(fileId)) {
-      throw new Error(`file '#${fileId}' does not exist`);
-    }
-
-    return this.transferFiles[fileId].getFile();
+    return this.getTransferFile(fileId).getFile();
   }
 
   /**
@@ -274,11 +266,7 @@ export class TransferFilePool {
    * @returns The Blob of the complete file.
    */
   public getBlob(fileId: string): Blob {
-    if (!this.fileExists(fileId)) {
-      throw new Error(`file '#${fileId}' does not exist`);
-    }
-
-    return this.transferFiles[fileId].getBlob();
+    return this.getTransferFile(fileId).getBlob();
   }
 
   /**
@@ -287,10 +275,6 @@ export class TransferFilePool {
    * @param fileId Id of the file.
    */
   public clearFile(fileId: string): void {
-    if (!this.fileExists(fileId)) {
-      throw new Error(`file '#${fileId}' does not exist`);
-    }
-
-    this.transferFiles[fileId].clear();
+    this.getTransferFile(fileId).clear();
   }
 }
