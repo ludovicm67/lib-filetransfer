@@ -78,7 +78,7 @@ And in your project, instantiate a pool like this:
 ```ts
 import { TransferFilePool } from "@ludovicm67/lib-filetransfer";
 
-const filePool = new TransferFilePool({ maxBufferSize: 5000 });
+const filePool = new TransferFilePool({ maxBufferSize: 16384 });
 ```
 
 To send a file to another user, you will need to add it to the pool like this:
@@ -143,7 +143,8 @@ On the sender side, we imagine you get the value of the `sendToOtherUser` functi
 const { fileId, offset, limit } = request;
 
 // this will contain the part of the requested file
-const data = filePool.readFilePart(fileId, offset, limit);
+// (only that part is read: the file is never loaded as a whole)
+const data = await filePool.readFilePart(fileId, offset, limit);
 
 // send this data to the other user
 sendToOtherUser({

@@ -15,6 +15,7 @@
     "docs:api": "typedoc && node scripts/postprocess-api.mjs",
     "docs:sitemap": "node scripts/build-sitemap.mjs",
     "favicon": "magick -background none site/favicon.svg -define icon:auto-resize=48,32,16 site/favicon.ico",
+    "og": "magick -background none site/og.svg -resize 1200x630 site/og.png",
     "docs:serve": "node scripts/serve-docs.mjs",
     "preview": "npm run docs && npm run docs:serve",
     "test": "npm run build && node --test test/**/*.test.js",
@@ -32,7 +33,7 @@
   "bugs": {
     "url": "https://github.com/ludovicm67/lib-filetransfer/issues"
   },
-  "homepage": "https://github.com/ludovicm67/lib-filetransfer#readme",
+  "homepage": "https://lib-filetransfer.ludovicm67.fr/",
   "funding": {
     "type": "github",
     "url": "https://github.com/sponsors/ludovicm67"
@@ -47,7 +48,6 @@
   },
   "dependencies": {
     "base64-arraybuffer": "^1.0.2",
-    "p-limit": "^7.1.0",
     "uuid": "^14.0.0"
   },
   "files": [

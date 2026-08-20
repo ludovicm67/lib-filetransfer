@@ -1,16 +1,43 @@
-import pLimit from "p-limit";
 import {
   AskFilePartCallback,
   TransferFileMetadata,
 } from "./TransferFilePool.js";
 
-type TransferFileParts = Record<string, ArrayBuffer>;
+type TransferFilePart = {
+  limit: number;
+
+  /**
+   * The received bytes, held as a Blob rather than as an ArrayBuffer: the
+   * runtime stores those outside of the JS heap, and can put them on disk. It
+   * also means assembling the file is a matter of referencing them, instead of
+   * copying every part into a new Blob.
+   */
+  data: Blob;
+};
+
+type TransferFileParts = Map<number, TransferFilePart>;
+
+/**
+ * Someone waiting for a part to arrive, woken up by `receiveFilePart()` or by
+ * its own timeout.
+ */
+type TransferFilePartWaiter = {
+  limit: number;
+  notify: (received: boolean) => void;
+};
 
 export type TransferFileInfos = {
   id: string;
   name: string;
+  type: string;
   size: number;
-  bufferLength: number;
+
+  /**
+   * Number of bytes of the file that are available so far, to display the
+   * progress of a download: it goes up as the parts are received, and is the
+   * full length of the file once it is complete.
+   */
+  receivedBytes: number;
 
   complete: boolean;
   downloading: boolean;
@@ -35,12 +62,14 @@ export class TransferFile {
   private size: number;
 
   // store data
-  private parts: TransferFileParts = {}; // while fetching content
+  private parts: TransferFileParts = new Map(); // while fetching content
+  private partsBufferSize: number | undefined = undefined; // size they were asked with
+  private partWaiters: Map<number, Set<TransferFilePartWaiter>> = new Map();
+  private receivedBytes: number = 0; // bytes held in `parts`
   private data: Blob | undefined = undefined; // full data
-  private buffer: ArrayBuffer | undefined = undefined;
-  private bufferLength: number;
 
   // state
+  private inFlight: Promise<void> | undefined = undefined; // running download
   private complete: boolean = false; // data is ready and complete
   private errored: boolean = false; // an error occured
   private downloading: boolean = false; // the file is being downloaded
@@ -51,6 +80,7 @@ export class TransferFile {
   // configuration
   private timeout: number = 1;
   private retries: number = 10;
+  private keepPartsOnFailure: boolean = false;
 
   /**
    * Generate a new TransferFile instance.
@@ -58,31 +88,33 @@ export class TransferFile {
    * @param id Id of the file.
    * @param name Name of the file.
    * @param type Type of the file.
-   * @param size Size of the file.
-   * @param bufferLength Length of the internal buffer.
+   * @param size Size of the file, in bytes.
    * @param timeout Timeout for a single check in seconds.
    * @param retries Number of retries before considering it as a failure.
+   * @param keepPartsOnFailure Keep the already received parts when a download fails (default: `false`).
    */
   constructor(
     id: string,
     name: string,
     type: string,
     size: number,
-    bufferLength: number,
     timeout?: number,
-    retries?: number
+    retries?: number,
+    keepPartsOnFailure?: boolean
   ) {
     this.id = id;
     this.name = name;
     this.type = type;
     this.size = size;
-    this.bufferLength = bufferLength;
 
     if (timeout !== undefined) {
       this.timeout = timeout;
     }
     if (retries !== undefined) {
       this.retries = retries;
+    }
+    if (keepPartsOnFailure !== undefined) {
+      this.keepPartsOnFailure = keepPartsOnFailure;
     }
   }
 
@@ -93,6 +125,19 @@ export class TransferFile {
    */
   public setDownloading(isDownloading: boolean = true): void {
     this.downloading = isDownloading;
+
+    // Nothing is going to be received anymore: release whoever is waiting for
+    // a part, instead of letting them sit there until their timeout.
+    if (!isDownloading) {
+      const pending = [...this.partWaiters.values()];
+      this.partWaiters.clear();
+
+      for (const waiters of pending) {
+        for (const waiter of waiters) {
+          waiter.notify(false);
+        }
+      }
+    }
   }
 
   /**
@@ -142,8 +187,12 @@ export class TransferFile {
     return {
       id: this.id,
       name: this.name,
+      type: this.type,
       size: this.size,
-      bufferLength: this.bufferLength,
+
+      // once the file is complete the parts are released, but every byte of it
+      // is there: the Blob holds them
+      receivedBytes: this.complete ? this.size : this.receivedBytes,
 
       complete: this.complete,
       downloading: this.downloading,
@@ -165,27 +214,15 @@ export class TransferFile {
 
     // generate the blob if it does not exist
     if (this.data === undefined) {
-      this.data = new Blob(
-        Object.keys(this.parts)
-          .sort((x, y) => {
-            const offsetX = parseInt(x.replace(/.*-/, ""), 10);
-            const offsetY = parseInt(y.replace(/.*-/, ""), 10);
+      // The parts are already Blobs, so this references them instead of
+      // copying the whole file one more time.
+      const orderedParts = [...this.parts.entries()]
+        .sort(([offsetX], [offsetY]) => offsetX - offsetY)
+        .map(([, part]) => part.data);
 
-            if (offsetX < offsetY) {
-              return -1;
-            }
-
-            if (offsetX > offsetY) {
-              return 1;
-            }
-
-            return 0;
-          })
-          .map((fPart) => this.parts[fPart]),
-        {
-          type: this.type,
-        }
-      );
+      this.data = new Blob(orderedParts, {
+        type: this.type,
+      });
     }
 
     return this.data;
@@ -212,15 +249,20 @@ export class TransferFile {
       // nothing to do, since the file is already complete
       return;
     }
-    if (this.isDownloading()) {
-      // nothing to do, since the download action was already triggered
-      return;
+    if (this.inFlight !== undefined) {
+      // a download is already running: wait for it, instead of resolving right
+      // away as if the file was ready
+      return this.inFlight;
     }
 
     if (maxBufferSize <= 0) {
       throw new Error(
         `maxBufferSize should be greater than 0, got: ${maxBufferSize}`
       );
+    }
+
+    if (this.size < 0) {
+      throw new Error(`size should not be negative, got: ${this.size}`);
     }
 
     if (timeout === undefined) {
@@ -230,38 +272,114 @@ export class TransferFile {
       retries = this.retries;
     }
 
+    this.inFlight = this.run(
+      maxBufferSize,
+      askFilePartCallback,
+      parallelCalls,
+      timeout,
+      retries
+    );
+
+    try {
+      await this.inFlight;
+    } finally {
+      this.inFlight = undefined;
+    }
+  }
+
+  /**
+   * Perform the actual download. Callers go through `download()`, which makes
+   * sure a single run is in flight at any time.
+   *
+   * @param maxBufferSize Maximum length for the data to ask at one time.
+   * @param askFilePartCallback Function that will be called to ask for some parts of the file.
+   * @param parallelCalls Number of parallel calls to perform.
+   * @param timeout Timeout for a single check in seconds.
+   * @param retries Number of retries before considering it as a failure.
+   */
+  private async run(
+    maxBufferSize: number,
+    askFilePartCallback: AskFilePartCallback,
+    parallelCalls: number,
+    timeout: number,
+    retries: number
+  ): Promise<void> {
+    // Parts kept from a previous attempt are only reusable if they were asked
+    // with the same buffer size: mixing sizes would produce a corrupted Blob.
+    if (this.partsBufferSize !== maxBufferSize) {
+      this.parts = new Map();
+      this.receivedBytes = 0;
+    }
+    this.partsBufferSize = maxBufferSize;
+
     this.setDownloading(true);
     this.setError(undefined, false);
 
     try {
-      const limit = pLimit(parallelCalls);
-      const partsCount = Math.ceil(this.bufferLength / maxBufferSize);
-      await Promise.all(
-        [...Array(partsCount).keys()].map((offset) =>
-          limit(() => {
-            return this.waitFilePartWithRetry(
+      const partsCount = Math.ceil(this.size / maxBufferSize);
+
+      // A fixed number of workers walk through the parts, rather than turning
+      // every part into a queued promise up front: for a big file that would
+      // cost a lot of memory before a single byte is even transferred.
+      const workers = Math.max(1, Math.min(parallelCalls, partsCount));
+      let nextPart = 0;
+      let failure: unknown = undefined;
+
+      const worker = async (): Promise<void> => {
+        while (failure === undefined) {
+          const part = nextPart++;
+          if (part >= partsCount) {
+            return;
+          }
+
+          try {
+            await this.waitFilePartWithRetry(
               askFilePartCallback,
-              offset * maxBufferSize,
+              part * maxBufferSize,
               maxBufferSize,
               timeout,
               retries
             );
-          })
-        )
-      );
+          } catch (e: unknown) {
+            failure = e;
+            return;
+          }
+        }
+      };
+
+      // Every worker has settled by the time this resolves, so none of them is
+      // still around to store a part after a failure released them.
+      await Promise.all(Array.from({ length: workers }, () => worker()));
+
+      if (failure !== undefined) {
+        throw failure;
+      }
+
       this.setComplete(true);
+      // Build the Blob while the parts are still around, then release them:
+      // the Blob holds the data from now on.
       this.getBlob();
+      this.parts = new Map();
+      this.receivedBytes = 0;
     } catch (e: any) {
       const msg = e?.message || "something went wrong";
       this.setComplete(false);
       this.setError(msg);
 
-      // re-throw the error we catched
-      throw new Error(msg);
-    }
+      // Drop what was received, unless the caller asked to keep it so that a
+      // later attempt can resume instead of asking for everything again.
+      if (!this.keepPartsOnFailure) {
+        this.parts = new Map();
+        this.receivedBytes = 0;
+      }
 
-    this.setDownloading(false);
-    this.parts = {};
+      // re-throw the error we catched, keeping the original one as the cause
+      throw new Error(msg, { cause: e });
+    } finally {
+      // Always run: leaving `downloading` stuck on true would make every later
+      // download() call return early as if it had succeeded.
+      this.setDownloading(false);
+    }
   }
 
   /**
@@ -275,7 +393,6 @@ export class TransferFile {
       name: this.name,
       size: this.size,
       type: this.type,
-      bufferLength: this.bufferLength,
     };
   }
 
@@ -299,12 +416,15 @@ export class TransferFile {
 
   /**
    * Set a Blob as being the content of this file.
+   *
+   * The Blob is kept as it is: its content is only read when a part of it is
+   * requested. A Blob coming from an `<input type="file">` is backed by the
+   * file on disk, so a file of any size can be sent without ever being held
+   * in memory as a whole.
    */
   public async setBlob(blob: Blob): Promise<void> {
-    const b = new Blob([blob], { type: blob.type });
-    this.data = b;
-    this.buffer = await b.arrayBuffer();
-    this.bufferLength = this.buffer.byteLength;
+    this.data = blob;
+    this.size = blob.size;
     this.setComplete(true);
     this.setDownloading(false);
     this.setError(undefined, false);
@@ -313,16 +433,22 @@ export class TransferFile {
   /**
    * Read `limit` bytes at maximum from `offset` from the file.
    *
+   * Only the requested slice is read: the rest of the file stays where it is,
+   * instead of being loaded in memory.
+   *
    * @param offset Offset from the start.
    * @param limit Maximum number of bytes to return.
    * @returns ArrayBuffer with the requested file part.
    */
-  public readFilePart(offset: number, limit: number): ArrayBuffer {
-    if (this.buffer === undefined) {
-      throw new Error(`buffer is not defined for file '#${this.id}'`);
+  public async readFilePart(
+    offset: number,
+    limit: number
+  ): Promise<ArrayBuffer> {
+    if (this.data === undefined) {
+      throw new Error(`no content to read for file '#${this.id}'`);
     }
 
-    return this.buffer.slice(offset, offset + limit);
+    return this.data.slice(offset, offset + limit).arrayBuffer();
   }
 
   /**
@@ -337,7 +463,30 @@ export class TransferFile {
     limit: number,
     data: ArrayBuffer
   ): void {
-    this.parts[`${limit}-${offset}`] = data;
+    // Hand the bytes over to the runtime right away: the ArrayBuffer we were
+    // given can then be collected, instead of sitting in the heap until the
+    // whole file has been received.
+    const part = new Blob([data]);
+
+    // a part can be delivered twice: only count the one we keep
+    const previousPart = this.parts.get(offset);
+    if (previousPart !== undefined) {
+      this.receivedBytes -= previousPart.data.size;
+    }
+    this.receivedBytes += part.size;
+
+    this.parts.set(offset, { limit, data: part });
+
+    // wake up whoever is waiting for this exact part
+    const waiters = this.partWaiters.get(offset);
+    if (waiters === undefined) {
+      return;
+    }
+    for (const waiter of waiters) {
+      if (waiter.limit === limit) {
+        waiter.notify(true);
+      }
+    }
   }
 
   /**
@@ -345,10 +494,12 @@ export class TransferFile {
    *
    * @param offset Offset from the start.
    * @param limit The requested limit.
-   * @returns true if the part exists or if the file is complete.
+   * @returns true if the part exists.
    */
-  public hasPart(offset: number, limit: number) {
-    return this.parts && this.parts[`${limit}-${offset}`];
+  public hasPart(offset: number, limit: number): boolean {
+    const part = this.parts.get(offset);
+
+    return part !== undefined && part.limit === limit;
   }
 
   /**
@@ -367,15 +518,39 @@ export class TransferFile {
     if (this.isComplete()) {
       return true;
     }
-
-    for (let i = timeout * 10; i >= 0; i--) {
-      if (this.hasPart(offset, limit)) {
-        return true;
-      }
-      await new Promise((r) => setTimeout(r, 100));
+    if (this.hasPart(offset, limit)) {
+      return true;
     }
 
-    return false;
+    // The part is not there yet: register a waiter that `receiveFilePart()`
+    // resolves as soon as it lands, so we do not have to poll for it.
+    return new Promise<boolean>((resolve) => {
+      const waiter: TransferFilePartWaiter = {
+        limit,
+        notify: (received: boolean) => {
+          clearTimeout(timer);
+
+          const waiters = this.partWaiters.get(offset);
+          if (waiters !== undefined) {
+            waiters.delete(waiter);
+            if (waiters.size === 0) {
+              this.partWaiters.delete(offset);
+            }
+          }
+
+          resolve(received);
+        },
+      };
+
+      const timer = setTimeout(() => waiter.notify(false), timeout * 1000);
+
+      let waiters = this.partWaiters.get(offset);
+      if (waiters === undefined) {
+        waiters = new Set();
+        this.partWaiters.set(offset, waiters);
+      }
+      waiters.add(waiter);
+    });
   }
 
   /**
@@ -406,26 +581,29 @@ export class TransferFile {
       return;
     }
 
-    if (!this.isDownloading()) {
-      throw new Error("download aborted");
-    }
-
     let success = false;
 
-    askFilePartCallback(this.id, offset, limit);
-
     for (let i = retries; i >= 0; i--) {
+      // the download may have been aborted while we were waiting
+      if (!this.isDownloading()) {
+        throw new Error("download aborted");
+      }
+
+      // ask (or re-ask) for the part, then wait for it to land
+      askFilePartCallback(this.id, offset, limit);
+
       const receivedPart = await this.waitFilePart(offset, limit, timeout);
       if (receivedPart) {
         success = true;
         break;
       }
-
-      // in case of a failure, retry
-      askFilePartCallback(this.id, offset, limit);
     }
 
     if (!success) {
+      if (!this.isDownloading()) {
+        throw new Error("download aborted");
+      }
+
       throw new Error(
         `missing part (limit=${limit}, offset=${offset}) for file '#${this.id}'`
       );
@@ -441,7 +619,8 @@ export class TransferFile {
     this.setDownloading(false);
     this.setError(undefined, false);
     this.data = undefined;
-    this.buffer = undefined;
-    this.parts = {};
+    this.parts = new Map();
+    this.partsBufferSize = undefined;
+    this.receivedBytes = 0;
   }
 }
