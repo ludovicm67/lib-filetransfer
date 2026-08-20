@@ -5,7 +5,14 @@ import {
 
 type TransferFilePart = {
   limit: number;
-  data: ArrayBuffer;
+
+  /**
+   * The received bytes, held as a Blob rather than as an ArrayBuffer: the
+   * runtime stores those outside of the JS heap, and can put them on disk. It
+   * also means assembling the file is a matter of referencing them, instead of
+   * copying every part into a new Blob.
+   */
+  data: Blob;
 };
 
 type TransferFileParts = Map<number, TransferFilePart>;
@@ -213,6 +220,8 @@ export class TransferFile {
 
     // generate the blob if it does not exist
     if (this.data === undefined) {
+      // The parts are already Blobs, so this references them instead of
+      // copying the whole file one more time.
       const orderedParts = [...this.parts.entries()]
         .sort(([offsetX], [offsetY]) => offsetX - offsetY)
         .map(([, part]) => part.data);
@@ -472,14 +481,19 @@ export class TransferFile {
     limit: number,
     data: ArrayBuffer
   ): void {
+    // Hand the bytes over to the runtime right away: the ArrayBuffer we were
+    // given can then be collected, instead of sitting in the heap until the
+    // whole file has been received.
+    const part = new Blob([data]);
+
     // a part can be delivered twice: only count the one we keep
     const previousPart = this.parts.get(offset);
     if (previousPart !== undefined) {
-      this.receivedBytes -= previousPart.data.byteLength;
+      this.receivedBytes -= previousPart.data.size;
     }
-    this.receivedBytes += data.byteLength;
+    this.receivedBytes += part.size;
 
-    this.parts.set(offset, { limit, data });
+    this.parts.set(offset, { limit, data: part });
 
     // wake up whoever is waiting for this exact part
     const waiters = this.partWaiters.get(offset);

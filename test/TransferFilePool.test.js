@@ -1125,4 +1125,57 @@ describe("testing the TransferFilePool class", () => {
       /no content to read for file '#announced-only'/,
     );
   });
+
+  it("should reassemble a file made of many parts byte for byte", async () => {
+    // Enough parts, delivered out of order, to exercise how they are stored
+    // and put back together.
+    const size = 200 * 1024;
+    const chunk = 1024;
+    const source = new Uint8Array(size);
+    for (let i = 0; i < size; i++) {
+      source[i] = (i * 31 + (i >> 8)) & 0xff;
+    }
+
+    /**
+     * SENDER
+     */
+    const senderPool = new TransferFilePool({ maxBufferSize: chunk });
+    const fileMetadata = await senderPool.addFile(
+      new Blob([source], { type: "application/octet-stream" }),
+      "big.bin"
+    );
+
+    /**
+     * RECEIVER
+     */
+    const pending = [];
+    const receiverPool = new TransferFilePool({
+      maxBufferSize: chunk,
+      parallelCalls: 8,
+      askFilePartCallback: async (fileId, offset, limit) => {
+        const data = await senderPool.readFilePart(fileId, offset, limit);
+        // hold the parts back, then deliver them in reverse order
+        pending.push([fileId, offset, limit, data]);
+        if (pending.length < 8) {
+          return;
+        }
+        const batch = pending.splice(0, pending.length).reverse();
+        for (const part of batch) {
+          receiverPool.receiveFilePart(...part);
+        }
+      },
+    });
+    receiverPool.storeFileMetadata({ ...fileMetadata });
+
+    await receiverPool.downloadFile(fileMetadata.id);
+
+    const received = new Uint8Array(
+      await receiverPool.getBlob(fileMetadata.id).arrayBuffer()
+    );
+    deepStrictEqual(received.length, size);
+    deepStrictEqual(
+      received.every((byte, i) => byte === source[i]),
+      true
+    );
+  });
 });
