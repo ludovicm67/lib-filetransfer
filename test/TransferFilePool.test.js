@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import { deepStrictEqual, rejects, throws } from "node:assert";
-import { TransferFilePool } from "../lib/index.js";
+import { TransferFile, TransferFilePool } from "../lib/index.js";
 
 describe("testing the TransferFilePool class", () => {
   it("should initialize without throwing an error", () => {
@@ -532,5 +532,320 @@ describe("testing the TransferFilePool class", () => {
     const reDownloadedFile = receiverPool.getFile(receivedFileMetadata.id);
     const reDownloadedFileContent = await reDownloadedFile.data.text();
     deepStrictEqual(reDownloadedFileContent, "Hello world!");
+  });
+
+  it("should be able to download again after a failed download", async () => {
+    /**
+     * SENDER
+     */
+    const senderPool = new TransferFilePool({});
+    const file = new Blob(["Hello world!"], {
+      type: "text/plain",
+    });
+    const fileMetadata = await senderPool.addFile(file, "test.txt");
+
+    /**
+     * RECEIVER
+     */
+    let deliver = false; // during the first attempt, no part ever arrives
+    const receiverPool = new TransferFilePool({
+      maxBufferSize: 5,
+      parallelCalls: 100,
+      timeout: 0,
+      retries: 0,
+      askFilePartCallback: (fileId, offset, limit) => {
+        if (!deliver) {
+          return;
+        }
+        receiverPool.receiveFilePart(
+          fileId,
+          offset,
+          limit,
+          senderPool.readFilePart(fileId, offset, limit)
+        );
+      },
+    });
+    receiverPool.storeFileMetadata({ ...fileMetadata });
+
+    // first attempt: it fails, since nothing is ever delivered
+    await rejects(
+      async () => {
+        await receiverPool.downloadFile(fileMetadata.id);
+      },
+      /missing part/,
+    );
+
+    // second attempt: it has to actually retry, and not return right away as
+    // if the file was already there
+    deliver = true;
+    await receiverPool.downloadFile(fileMetadata.id);
+    const finalFile = receiverPool.getFile(fileMetadata.id);
+    const finalContent = await finalFile.data.text();
+    deepStrictEqual(finalContent, "Hello world!");
+  });
+
+  it("should wait for the running download when called a second time", async () => {
+    /**
+     * SENDER
+     */
+    const senderPool = new TransferFilePool({});
+    const file = new Blob(["Hello world!"], {
+      type: "text/plain",
+    });
+    const fileMetadata = await senderPool.addFile(file, "test.txt");
+
+    /**
+     * RECEIVER
+     */
+    let sendCb = (_fileId, _offset, _limit, _data) => { };
+    const receiverPool = new TransferFilePool({
+      maxBufferSize: 5,
+      parallelCalls: 100,
+      askFilePartCallback: async (fileId, offset, limit) => {
+        const partData = senderPool.readFilePart(fileId, offset, limit);
+        await new Promise(r => setTimeout(r, 100));
+        sendCb(fileId, offset, limit, partData);
+      },
+    });
+    sendCb = (fileId, offset, limit, data) => {
+      receiverPool.receiveFilePart(fileId, offset, limit, data);
+    };
+    receiverPool.storeFileMetadata({ ...fileMetadata });
+
+    // imagine the user clicking twice on the download button
+    const firstCall = receiverPool.downloadFile(fileMetadata.id);
+    const secondCall = receiverPool.downloadFile(fileMetadata.id);
+
+    // the second call has to wait for the running download to be over
+    await secondCall;
+    const finalFile = receiverPool.getFile(fileMetadata.id);
+    const finalContent = await finalFile.data.text();
+    deepStrictEqual(finalContent, "Hello world!");
+
+    await firstCall;
+  });
+
+  it("should be able to send an empty file", async () => {
+    /**
+     * SENDER
+     */
+    const senderPool = new TransferFilePool({});
+    const file = new Blob([], {
+      type: "text/plain",
+    });
+    const fileMetadata = await senderPool.addFile(file, "empty.txt");
+
+    /**
+     * RECEIVER
+     */
+    const receiverPool = new TransferFilePool({
+      maxBufferSize: 5,
+      askFilePartCallback: (fileId, offset, limit) => {
+        receiverPool.receiveFilePart(
+          fileId,
+          offset,
+          limit,
+          senderPool.readFilePart(fileId, offset, limit)
+        );
+      },
+    });
+    receiverPool.storeFileMetadata({ ...fileMetadata });
+
+    await receiverPool.downloadFile(fileMetadata.id);
+    const finalFile = receiverPool.getFile(fileMetadata.id);
+    const finalContent = await finalFile.data.text();
+    deepStrictEqual(finalContent, "");
+  });
+
+  it("should throw when the announced metadata is inconsistent", async () => {
+    const pool = new TransferFilePool({ maxBufferSize: 5 });
+
+    // a size is announced, but no bufferLength: without a check the download
+    // would complete instantly, with an empty Blob
+    const fileId = pool.storeFileMetadata({
+      id: "inconsistent",
+      name: "test.txt",
+      type: "text/plain",
+      size: 12,
+    });
+
+    await rejects(
+      async () => {
+        await pool.downloadFile(fileId);
+      },
+      /announces a size of 12 but a bufferLength of 0/,
+    );
+  });
+
+  it("should keep the original error as the cause of a failed download", async () => {
+    const pool = new TransferFilePool({
+      maxBufferSize: 5,
+      timeout: 0,
+      retries: 0,
+    });
+    const fileId = pool.storeFileMetadata({
+      id: "never-delivered",
+      name: "test.txt",
+      type: "text/plain",
+      size: 12,
+      bufferLength: 12,
+    });
+
+    await rejects(
+      async () => {
+        await pool.downloadFile(fileId);
+      },
+      (err) => {
+        deepStrictEqual(err.message.startsWith("missing part"), true);
+        deepStrictEqual(err.cause instanceof Error, true);
+        deepStrictEqual(err.cause.message, err.message);
+        return true;
+      },
+    );
+  });
+
+  it("should start over after a failed download by default", async () => {
+    /**
+     * SENDER
+     */
+    const senderPool = new TransferFilePool({});
+    const file = new Blob(["Hello world!"], {
+      type: "text/plain",
+    });
+    const fileMetadata = await senderPool.addFile(file, "test.txt");
+
+    /**
+     * RECEIVER
+     */
+    // "Hello world!" is 12 bytes, so with a buffer of 5 there are 3 parts:
+    // offsets 0, 5 and 10. The first attempt only delivers the first one.
+    let deliverEverything = false;
+    const askedOffsets = [];
+    const receiverPool = new TransferFilePool({
+      maxBufferSize: 5,
+      parallelCalls: 100,
+      timeout: 0,
+      retries: 0,
+      askFilePartCallback: (fileId, offset, limit) => {
+        askedOffsets.push(offset);
+        if (!deliverEverything && offset !== 0) {
+          return;
+        }
+        receiverPool.receiveFilePart(
+          fileId,
+          offset,
+          limit,
+          senderPool.readFilePart(fileId, offset, limit)
+        );
+      },
+    });
+    receiverPool.storeFileMetadata({ ...fileMetadata });
+
+    await rejects(
+      async () => {
+        await receiverPool.downloadFile(fileMetadata.id);
+      },
+      /missing part/,
+    );
+
+    // second attempt: nothing was kept, so every part is asked again
+    askedOffsets.length = 0;
+    deliverEverything = true;
+    await receiverPool.downloadFile(fileMetadata.id);
+    deepStrictEqual(askedOffsets.sort((a, b) => a - b), [0, 5, 10]);
+
+    const finalFile = receiverPool.getFile(fileMetadata.id);
+    const finalContent = await finalFile.data.text();
+    deepStrictEqual(finalContent, "Hello world!");
+  });
+
+  it("should resume a failed download when keepPartsOnFailure is set", async () => {
+    /**
+     * SENDER
+     */
+    const senderPool = new TransferFilePool({});
+    const file = new Blob(["Hello world!"], {
+      type: "text/plain",
+    });
+    const fileMetadata = await senderPool.addFile(file, "test.txt");
+
+    /**
+     * RECEIVER
+     */
+    let deliverEverything = false;
+    const askedOffsets = [];
+    const receiverPool = new TransferFilePool({
+      maxBufferSize: 5,
+      parallelCalls: 100,
+      timeout: 0,
+      retries: 0,
+      keepPartsOnFailure: true,
+      askFilePartCallback: (fileId, offset, limit) => {
+        askedOffsets.push(offset);
+        if (!deliverEverything && offset !== 0) {
+          return;
+        }
+        receiverPool.receiveFilePart(
+          fileId,
+          offset,
+          limit,
+          senderPool.readFilePart(fileId, offset, limit)
+        );
+      },
+    });
+    receiverPool.storeFileMetadata({ ...fileMetadata });
+
+    await rejects(
+      async () => {
+        await receiverPool.downloadFile(fileMetadata.id);
+      },
+      /missing part/,
+    );
+    deepStrictEqual(askedOffsets.sort((a, b) => a - b), [0, 5, 10]);
+
+    // second attempt: the part received before is kept, so it is not asked again
+    askedOffsets.length = 0;
+    deliverEverything = true;
+    await receiverPool.downloadFile(fileMetadata.id);
+    deepStrictEqual(askedOffsets.sort((a, b) => a - b), [5, 10]);
+
+    const finalFile = receiverPool.getFile(fileMetadata.id);
+    const finalContent = await finalFile.data.text();
+    deepStrictEqual(finalContent, "Hello world!");
+  });
+
+  it("should not reuse kept parts asked with another buffer size", async () => {
+    const content = "Hello world!"; // 12 bytes
+
+    // sender side
+    const sender = new TransferFile("s", "test.txt", "text/plain", 12, 0);
+    await sender.setBlob(new Blob([content], { type: "text/plain" }));
+
+    // receiver side, keeping the parts of a failed download around
+    const receiver = new TransferFile(
+      "r", "test.txt", "text/plain", 12, 12, 0, 0, true
+    );
+
+    // first attempt with a buffer of 5: only the part at offset 0 is delivered
+    await rejects(
+      async () => {
+        await receiver.download(5, (_fileId, offset, limit) => {
+          if (offset !== 0) {
+            return;
+          }
+          receiver.receiveFilePart(offset, limit, sender.readFilePart(offset, limit));
+        });
+      },
+      /missing part/,
+    );
+
+    // second attempt with a buffer of 4: the kept 5-byte part cannot be reused,
+    // and has to be dropped instead of ending up in the final Blob
+    await receiver.download(4, (_fileId, offset, limit) => {
+      receiver.receiveFilePart(offset, limit, sender.readFilePart(offset, limit));
+    });
+
+    const finalContent = await receiver.getBlob().text();
+    deepStrictEqual(finalContent, content);
   });
 });

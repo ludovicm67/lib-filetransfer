@@ -23,6 +23,18 @@ export type TransferFilePoolOptions = {
   parallelCalls?: number;
   timeout?: number;
   retries?: number;
+
+  /**
+   * Keep the parts that were already received when a download fails, so that a
+   * later attempt only asks for the missing ones instead of downloading the
+   * whole file again.
+   *
+   * Those parts are held in memory until the download succeeds or
+   * `clearFile()` is called, which for a large file can be a lot of memory.
+   * It therefore defaults to `false`: a failed download is dropped, and the
+   * next attempt starts over.
+   */
+  keepPartsOnFailure?: boolean;
 };
 
 export class TransferFilePool {
@@ -33,6 +45,7 @@ export class TransferFilePool {
   private parallelCalls: number;
   private timeout: number = 1;
   private retries: number = 10;
+  private keepPartsOnFailure: boolean = false;
 
   // callbacks
   private askFilePartCallback: AskFilePartCallback;
@@ -61,6 +74,9 @@ export class TransferFilePool {
     }
     if (options?.retries !== undefined) {
       this.retries = options.retries;
+    }
+    if (options?.keepPartsOnFailure !== undefined) {
+      this.keepPartsOnFailure = options.keepPartsOnFailure;
     }
   }
 
@@ -100,7 +116,8 @@ export class TransferFilePool {
         metadata.size || 0,
         metadata.bufferLength || 0,
         this.timeout,
-        this.retries
+        this.retries,
+        this.keepPartsOnFailure
       );
     }
 
@@ -186,7 +203,8 @@ export class TransferFilePool {
       blob.size,
       0,
       this.timeout,
-      this.retries
+      this.retries,
+      this.keepPartsOnFailure
     );
     await f.setBlob(blob);
     this.transferFiles[fId] = f;

@@ -36,11 +36,13 @@ export class TransferFile {
 
   // store data
   private parts: TransferFileParts = {}; // while fetching content
+  private partsBufferSize: number | undefined = undefined; // size they were asked with
   private data: Blob | undefined = undefined; // full data
   private buffer: ArrayBuffer | undefined = undefined;
   private bufferLength: number;
 
   // state
+  private inFlight: Promise<void> | undefined = undefined; // running download
   private complete: boolean = false; // data is ready and complete
   private errored: boolean = false; // an error occured
   private downloading: boolean = false; // the file is being downloaded
@@ -51,6 +53,7 @@ export class TransferFile {
   // configuration
   private timeout: number = 1;
   private retries: number = 10;
+  private keepPartsOnFailure: boolean = false;
 
   /**
    * Generate a new TransferFile instance.
@@ -62,6 +65,7 @@ export class TransferFile {
    * @param bufferLength Length of the internal buffer.
    * @param timeout Timeout for a single check in seconds.
    * @param retries Number of retries before considering it as a failure.
+   * @param keepPartsOnFailure Keep the already received parts when a download fails (default: `false`).
    */
   constructor(
     id: string,
@@ -70,7 +74,8 @@ export class TransferFile {
     size: number,
     bufferLength: number,
     timeout?: number,
-    retries?: number
+    retries?: number,
+    keepPartsOnFailure?: boolean
   ) {
     this.id = id;
     this.name = name;
@@ -83,6 +88,9 @@ export class TransferFile {
     }
     if (retries !== undefined) {
       this.retries = retries;
+    }
+    if (keepPartsOnFailure !== undefined) {
+      this.keepPartsOnFailure = keepPartsOnFailure;
     }
   }
 
@@ -212,14 +220,30 @@ export class TransferFile {
       // nothing to do, since the file is already complete
       return;
     }
-    if (this.isDownloading()) {
-      // nothing to do, since the download action was already triggered
-      return;
+    if (this.inFlight !== undefined) {
+      // a download is already running: wait for it, instead of resolving right
+      // away as if the file was ready
+      return this.inFlight;
     }
 
     if (maxBufferSize <= 0) {
       throw new Error(
         `maxBufferSize should be greater than 0, got: ${maxBufferSize}`
+      );
+    }
+
+    if (this.bufferLength < 0) {
+      throw new Error(
+        `bufferLength should not be negative, got: ${this.bufferLength}`
+      );
+    }
+
+    // A zero-length buffer is only legitimate for a genuinely empty file.
+    // Otherwise the metadata is inconsistent and the download would complete
+    // instantly with an empty Blob instead of failing.
+    if (this.bufferLength === 0 && this.size > 0) {
+      throw new Error(
+        `file '#${this.id}' announces a size of ${this.size} but a bufferLength of 0`
       );
     }
 
@@ -229,6 +253,45 @@ export class TransferFile {
     if (retries === undefined) {
       retries = this.retries;
     }
+
+    this.inFlight = this.run(
+      maxBufferSize,
+      askFilePartCallback,
+      parallelCalls,
+      timeout,
+      retries
+    );
+
+    try {
+      await this.inFlight;
+    } finally {
+      this.inFlight = undefined;
+    }
+  }
+
+  /**
+   * Perform the actual download. Callers go through `download()`, which makes
+   * sure a single run is in flight at any time.
+   *
+   * @param maxBufferSize Maximum length for the data to ask at one time.
+   * @param askFilePartCallback Function that will be called to ask for some parts of the file.
+   * @param parallelCalls Number of parallel calls to perform.
+   * @param timeout Timeout for a single check in seconds.
+   * @param retries Number of retries before considering it as a failure.
+   */
+  private async run(
+    maxBufferSize: number,
+    askFilePartCallback: AskFilePartCallback,
+    parallelCalls: number,
+    timeout: number,
+    retries: number
+  ): Promise<void> {
+    // Parts kept from a previous attempt are only reusable if they were asked
+    // with the same buffer size: mixing sizes would produce a corrupted Blob.
+    if (this.partsBufferSize !== maxBufferSize) {
+      this.parts = {};
+    }
+    this.partsBufferSize = maxBufferSize;
 
     this.setDownloading(true);
     this.setError(undefined, false);
@@ -250,18 +313,28 @@ export class TransferFile {
         )
       );
       this.setComplete(true);
+      // Build the Blob while the parts are still around, then release them:
+      // the Blob holds the data from now on.
       this.getBlob();
+      this.parts = {};
     } catch (e: any) {
       const msg = e?.message || "something went wrong";
       this.setComplete(false);
       this.setError(msg);
 
-      // re-throw the error we catched
-      throw new Error(msg);
-    }
+      // Drop what was received, unless the caller asked to keep it so that a
+      // later attempt can resume instead of asking for everything again.
+      if (!this.keepPartsOnFailure) {
+        this.parts = {};
+      }
 
-    this.setDownloading(false);
-    this.parts = {};
+      // re-throw the error we catched, keeping the original one as the cause
+      throw new Error(msg, { cause: e });
+    } finally {
+      // Always run: leaving `downloading` stuck on true would make every later
+      // download() call return early as if it had succeeded.
+      this.setDownloading(false);
+    }
   }
 
   /**
@@ -372,7 +445,11 @@ export class TransferFile {
       if (this.hasPart(offset, limit)) {
         return true;
       }
-      await new Promise((r) => setTimeout(r, 100));
+
+      // no point in sleeping after the last check: we are about to give up
+      if (i > 0) {
+        await new Promise((r) => setTimeout(r, 100));
+      }
     }
 
     return false;
@@ -412,17 +489,15 @@ export class TransferFile {
 
     let success = false;
 
-    askFilePartCallback(this.id, offset, limit);
-
     for (let i = retries; i >= 0; i--) {
+      // ask (or re-ask) for the part, then wait for it to land
+      askFilePartCallback(this.id, offset, limit);
+
       const receivedPart = await this.waitFilePart(offset, limit, timeout);
       if (receivedPart) {
         success = true;
         break;
       }
-
-      // in case of a failure, retry
-      askFilePartCallback(this.id, offset, limit);
     }
 
     if (!success) {
@@ -443,5 +518,6 @@ export class TransferFile {
     this.data = undefined;
     this.buffer = undefined;
     this.parts = {};
+    this.partsBufferSize = undefined;
   }
 }
