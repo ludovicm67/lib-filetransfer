@@ -33,6 +33,10 @@
     "url": "https://github.com/ludovicm67/lib-filetransfer/issues"
   },
   "homepage": "https://github.com/ludovicm67/lib-filetransfer#readme",
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/ludovicm67"
+  },
   "devDependencies": {
     "@changesets/cli": "^3.0.0",
     "@types/node": "^26.0.0",
