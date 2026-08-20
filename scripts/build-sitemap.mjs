@@ -3,6 +3,7 @@
 import { readdir, readFile, writeFile } from "node:fs/promises";
 import { join, dirname, sep } from "node:path";
 import { fileURLToPath } from "node:url";
+import { execFileSync } from "node:child_process";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const docsDir = join(root, "docs");
@@ -23,9 +24,43 @@ for (const entry of entries) {
 }
 paths.sort();
 
-const lastmod = new Date().toISOString().slice(0, 10);
+/**
+ * Date of the last commit touching a path, as YYYY-MM-DD.
+ *
+ * Stamping every page with the date of the build would mark the whole site as
+ * changed on every push, and a `lastmod` that is obviously unreliable is one
+ * a search engine ignores. Returns undefined when the history is not there --
+ * a shallow clone, or no git at all -- so the field is left out rather than
+ * being made up.
+ *
+ * @param {string} path Path to look up, relative to the repository.
+ * @returns {string | undefined}
+ */
+const lastCommitDate = (path) => {
+  try {
+    const out = execFileSync(
+      "git",
+      ["log", "-1", "--format=%cs", "--", path],
+      { cwd: root, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }
+    ).trim();
+
+    return /^\d{4}-\d{2}-\d{2}$/.test(out) ? out : undefined;
+  } catch {
+    return undefined;
+  }
+};
+
+// The landing page comes from site/, every API page from the sources.
+const siteDate = lastCommitDate("site");
+const apiDate = lastCommitDate("src");
+
 const body = paths
-  .map((p) => `  <url>\n    <loc>${base}/${p}</loc>\n    <lastmod>${lastmod}</lastmod>\n  </url>`)
+  .map((p) => {
+    const lastmod = p.startsWith("api/") ? apiDate : siteDate;
+    const stamp = lastmod === undefined ? "" : `\n    <lastmod>${lastmod}</lastmod>`;
+
+    return `  <url>\n    <loc>${base}/${p}</loc>${stamp}\n  </url>`;
+  })
   .join("\n");
 const sitemap =
   '<?xml version="1.0" encoding="UTF-8"?>\n' +
