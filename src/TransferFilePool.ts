@@ -1,5 +1,9 @@
 import { v4 as uuidv4 } from "uuid";
-import { TransferFile, TransferFileBlob } from "./TransferFile.js";
+import {
+  TransferFile,
+  TransferFileBlob,
+  TransferFileInfos,
+} from "./TransferFile.js";
 
 type TransferFilePoolFiles = Map<string, TransferFile>;
 
@@ -257,6 +261,17 @@ export class TransferFilePool {
    */
   public getFile(fileId: string): TransferFileBlob {
     return this.getTransferFile(fileId).getFile();
+  }
+
+  /**
+   * Get informations about a specific file, such as how much of it was already
+   * received.
+   *
+   * @param fileId Id of the file.
+   * @returns Informations about the requested file.
+   */
+  public getFileInfos(fileId: string): TransferFileInfos {
+    return this.getTransferFile(fileId).getInfos();
   }
 
   /**

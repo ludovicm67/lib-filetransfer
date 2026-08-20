@@ -313,6 +313,7 @@ input[type="range"]::-moz-range-thumb { width: 16px; height: 16px; border-radius
 @keyframes pulse { 50% { opacity: 0.5; } }
 .progress { height: 8px; border-radius: 6px; background: var(--surface-2); overflow: hidden; }
 .progress-bar { height: 100%; width: 0; background: var(--grad); border-radius: 6px; transition: width .2s ease; }
+.progress-caption { margin-top: 6px; text-align: right; font-size: 0.75rem; color: var(--text-faint); font-family: var(--mono); }
 .result { display: flex; flex-direction: column; gap: 8px; align-items: center; }
 .result img { width: 130px; height: 130px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border); }
 .result .ok-line { color: var(--ok); font-size: 0.85rem; font-weight: 600; text-align: center; align-self: stretch; }

@@ -23,8 +23,16 @@ type TransferFilePartWaiter = {
 export type TransferFileInfos = {
   id: string;
   name: string;
+  type: string;
   size: number;
   bufferLength: number;
+
+  /**
+   * Number of bytes of the file that are available so far, to display the
+   * progress of a download: it goes up as the parts are received, and is the
+   * full length of the file once it is complete.
+   */
+  receivedBytes: number;
 
   complete: boolean;
   downloading: boolean;
@@ -52,6 +60,7 @@ export class TransferFile {
   private parts: TransferFileParts = new Map(); // while fetching content
   private partsBufferSize: number | undefined = undefined; // size they were asked with
   private partWaiters: Map<number, Set<TransferFilePartWaiter>> = new Map();
+  private receivedBytes: number = 0; // bytes held in `parts`
   private data: Blob | undefined = undefined; // full data
   private buffer: ArrayBuffer | undefined = undefined;
   private bufferLength: number;
@@ -165,8 +174,13 @@ export class TransferFile {
     return {
       id: this.id,
       name: this.name,
+      type: this.type,
       size: this.size,
       bufferLength: this.bufferLength,
+
+      // once the file is complete the parts are released, but every byte of it
+      // is there: the Blob holds them
+      receivedBytes: this.complete ? this.bufferLength : this.receivedBytes,
 
       complete: this.complete,
       downloading: this.downloading,
@@ -291,6 +305,7 @@ export class TransferFile {
     // with the same buffer size: mixing sizes would produce a corrupted Blob.
     if (this.partsBufferSize !== maxBufferSize) {
       this.parts = new Map();
+      this.receivedBytes = 0;
     }
     this.partsBufferSize = maxBufferSize;
 
@@ -318,6 +333,7 @@ export class TransferFile {
       // the Blob holds the data from now on.
       this.getBlob();
       this.parts = new Map();
+      this.receivedBytes = 0;
     } catch (e: any) {
       const msg = e?.message || "something went wrong";
       this.setComplete(false);
@@ -327,6 +343,7 @@ export class TransferFile {
       // later attempt can resume instead of asking for everything again.
       if (!this.keepPartsOnFailure) {
         this.parts = new Map();
+        this.receivedBytes = 0;
       }
 
       // re-throw the error we catched, keeping the original one as the cause
@@ -411,6 +428,13 @@ export class TransferFile {
     limit: number,
     data: ArrayBuffer
   ): void {
+    // a part can be delivered twice: only count the one we keep
+    const previousPart = this.parts.get(offset);
+    if (previousPart !== undefined) {
+      this.receivedBytes -= previousPart.data.byteLength;
+    }
+    this.receivedBytes += data.byteLength;
+
     this.parts.set(offset, { limit, data });
 
     // wake up whoever is waiting for this exact part
@@ -553,5 +577,6 @@ export class TransferFile {
     this.buffer = undefined;
     this.parts = new Map();
     this.partsBufferSize = undefined;
+    this.receivedBytes = 0;
   }
 }

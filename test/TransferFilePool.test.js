@@ -909,4 +909,116 @@ describe("testing the TransferFilePool class", () => {
       deepStrictEqual(finalContent, content);
     }
   });
+
+  it("should expose the type of the file in its infos", async () => {
+    const pool = new TransferFilePool();
+    const blob = new Blob(["test"], {
+      type: "text/plain",
+    });
+    const { id } = await pool.addFile(blob, "test.txt");
+
+    const infos = pool.getFileInfos(id);
+    deepStrictEqual(infos.type, "text/plain");
+    deepStrictEqual(infos.name, "test.txt");
+  });
+
+  it("should report the progress of a download", async () => {
+    /**
+     * SENDER
+     */
+    const senderPool = new TransferFilePool({});
+    const file = new Blob(["Hello world!"], {
+      type: "text/plain",
+    });
+    const fileMetadata = await senderPool.addFile(file, "test.txt");
+
+    // a file that is complete has all of its bytes
+    const senderInfos = senderPool.getFileInfos(fileMetadata.id);
+    deepStrictEqual(senderInfos.receivedBytes, senderInfos.size);
+
+    /**
+     * RECEIVER
+     */
+    const progress = [];
+    const receiverPool = new TransferFilePool({
+      maxBufferSize: 5,
+      askFilePartCallback: (fileId, offset, limit) => {
+        receiverPool.receiveFilePart(
+          fileId,
+          offset,
+          limit,
+          senderPool.readFilePart(fileId, offset, limit)
+        );
+        progress.push(receiverPool.getFileInfos(fileId).receivedBytes);
+      },
+    });
+    receiverPool.storeFileMetadata({ ...fileMetadata });
+
+    // nothing received yet
+    deepStrictEqual(receiverPool.getFileInfos(fileMetadata.id).receivedBytes, 0);
+
+    await receiverPool.downloadFile(fileMetadata.id);
+
+    // 3 parts of 5 bytes, the last one being shorter
+    deepStrictEqual(progress, [5, 10, 12]);
+
+    // the parts are released once the file is complete, but every byte is there
+    const finalInfos = receiverPool.getFileInfos(fileMetadata.id);
+    deepStrictEqual(finalInfos.receivedBytes, 12);
+    deepStrictEqual(finalInfos.complete, true);
+  });
+
+  it("should not count a part received twice", () => {
+    const pool = new TransferFilePool({ maxBufferSize: 5 });
+    const fileId = pool.storeFileMetadata({
+      id: "twice",
+      name: "test.txt",
+      type: "text/plain",
+      size: 12,
+      bufferLength: 12,
+    });
+
+    pool.receiveFilePart(fileId, 0, 5, new ArrayBuffer(5));
+    pool.receiveFilePart(fileId, 0, 5, new ArrayBuffer(5));
+
+    deepStrictEqual(pool.getFileInfos(fileId).receivedBytes, 5);
+  });
+
+  it("should reset the progress of a cleared file", async () => {
+    /**
+     * SENDER
+     */
+    const senderPool = new TransferFilePool({});
+    const file = new Blob(["Hello world!"], {
+      type: "text/plain",
+    });
+    const fileMetadata = await senderPool.addFile(file, "test.txt");
+
+    /**
+     * RECEIVER
+     */
+    const receiverPool = new TransferFilePool({
+      maxBufferSize: 5,
+      askFilePartCallback: (fileId, offset, limit) => {
+        receiverPool.receiveFilePart(
+          fileId,
+          offset,
+          limit,
+          senderPool.readFilePart(fileId, offset, limit)
+        );
+      },
+    });
+    receiverPool.storeFileMetadata({ ...fileMetadata });
+
+    await receiverPool.downloadFile(fileMetadata.id);
+    deepStrictEqual(receiverPool.getFileInfos(fileMetadata.id).receivedBytes, 12);
+
+    receiverPool.clearFile(fileMetadata.id);
+    deepStrictEqual(receiverPool.getFileInfos(fileMetadata.id).receivedBytes, 0);
+  });
+
+  it("should throw when asking the infos of a file that is not in the pool", () => {
+    const pool = new TransferFilePool();
+    throws(() => pool.getFileInfos("unknown"), /file '#unknown' does not exist/);
+  });
 });
