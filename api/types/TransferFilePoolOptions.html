@@ -12,7 +12,7 @@
 <h1>Type Alias TransferFilePoolOptions</h1></div>
 <div class="tsd-signature"><span class="tsd-signature-keyword">type</span> <span class="tsd-kind-type-alias">TransferFilePoolOptions</span> <span class="tsd-signature-symbol">=</span> <span class="tsd-signature-symbol">{</span><br/>    <a class="tsd-kind-property" href="#askfilepartcallback">askFilePartCallback</a><span class="tsd-signature-symbol">?:</span> <a href="AskFilePartCallback.html" class="tsd-signature-type tsd-kind-type-alias">AskFilePartCallback</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#keeppartsonfailure">keepPartsOnFailure</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#maxbuffersize">maxBufferSize</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#parallelcalls">parallelCalls</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#retries">retries</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#timeout">timeout</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/ludovicm67/lib-filetransfer/blob/3e3de7d012287b7a7cfb939f3ec428c588ba4949/src/TransferFilePool.ts#L25">TransferFilePool.ts:25</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/ludovicm67/lib-filetransfer/blob/8ac612019a79f87c102a80e230bd70674dc4a840/src/TransferFilePool.ts#L25">TransferFilePool.ts:25</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -34,7 +34,7 @@
 <h3 class="tsd-anchor-link" id="askfilepartcallback"><code class="tsd-tag">Optional</code><span>ask<wbr/>File<wbr/>Part<wbr/>Callback</span><a href="#askfilepartcallback" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">askFilePartCallback</span><span class="tsd-signature-symbol">?:</span> <a href="AskFilePartCallback.html" class="tsd-signature-type tsd-kind-type-alias">AskFilePartCallback</a></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/ludovicm67/lib-filetransfer/blob/3e3de7d012287b7a7cfb939f3ec428c588ba4949/src/TransferFilePool.ts#L26">TransferFilePool.ts:26</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/ludovicm67/lib-filetransfer/blob/8ac612019a79f87c102a80e230bd70674dc4a840/src/TransferFilePool.ts#L26">TransferFilePool.ts:26</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="keeppartsonfailure"><code class="tsd-tag">Optional</code><span>keep<wbr/>Parts<wbr/>On<wbr/>Failure</span><a href="#keeppartsonfailure" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">keepPartsOnFailure</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
@@ -47,7 +47,7 @@ It therefore defaults to <code>false</code>: a failed download is dropped, and t
 next attempt starts over.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/ludovicm67/lib-filetransfer/blob/3e3de7d012287b7a7cfb939f3ec428c588ba4949/src/TransferFilePool.ts#L60">TransferFilePool.ts:60</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/ludovicm67/lib-filetransfer/blob/8ac612019a79f87c102a80e230bd70674dc4a840/src/TransferFilePool.ts#L60">TransferFilePool.ts:60</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="maxbuffersize"><code class="tsd-tag">Optional</code><span>max<wbr/>Buffer<wbr/>Size</span><a href="#maxbuffersize" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">maxBufferSize</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span></div>
@@ -56,7 +56,7 @@ message size a WebRTC data channel handles everywhere.</p>
 <p>Smaller parts mean more requests, and more bookkeeping for each of them.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/ludovicm67/lib-filetransfer/blob/3e3de7d012287b7a7cfb939f3ec428c588ba4949/src/TransferFilePool.ts#L34">TransferFilePool.ts:34</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/ludovicm67/lib-filetransfer/blob/8ac612019a79f87c102a80e230bd70674dc4a840/src/TransferFilePool.ts#L34">TransferFilePool.ts:34</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="parallelcalls"><code class="tsd-tag">Optional</code><span>parallel<wbr/>Calls</span><a href="#parallelcalls" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">parallelCalls</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span></div>
@@ -65,21 +65,21 @@ message size a WebRTC data channel handles everywhere.</p>
 so overlapping them is what makes a transfer fast.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/ludovicm67/lib-filetransfer/blob/3e3de7d012287b7a7cfb939f3ec428c588ba4949/src/TransferFilePool.ts#L42">TransferFilePool.ts:42</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/ludovicm67/lib-filetransfer/blob/8ac612019a79f87c102a80e230bd70674dc4a840/src/TransferFilePool.ts#L42">TransferFilePool.ts:42</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="retries"><code class="tsd-tag">Optional</code><span>retries</span><a href="#retries" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">retries</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span></div>
 <div class="tsd-comment tsd-typography"><p>How many times a part is re-asked before giving up. Defaults to <code>10</code>.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/ludovicm67/lib-filetransfer/blob/3e3de7d012287b7a7cfb939f3ec428c588ba4949/src/TransferFilePool.ts#L48">TransferFilePool.ts:48</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/ludovicm67/lib-filetransfer/blob/8ac612019a79f87c102a80e230bd70674dc4a840/src/TransferFilePool.ts#L48">TransferFilePool.ts:48</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="timeout"><code class="tsd-tag">Optional</code><span>timeout</span><a href="#timeout" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">timeout</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span></div>
 <div class="tsd-comment tsd-typography"><p>Seconds to wait for a part before asking for it again. Defaults to <code>1</code>.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/ludovicm67/lib-filetransfer/blob/3e3de7d012287b7a7cfb939f3ec428c588ba4949/src/TransferFilePool.ts#L45">TransferFilePool.ts:45</a></li></ul></aside></section></section></details></div>
+<li>Defined in <a href="https://github.com/ludovicm67/lib-filetransfer/blob/8ac612019a79f87c102a80e230bd70674dc4a840/src/TransferFilePool.ts#L45">TransferFilePool.ts:45</a></li></ul></aside></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
